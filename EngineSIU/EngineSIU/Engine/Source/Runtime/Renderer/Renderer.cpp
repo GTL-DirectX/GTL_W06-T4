@@ -1,10 +1,8 @@
 
 #include "Renderer.h"
 #include "World/World.h"
-#include "Engine/EditorEngine.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "D3D11RHI/DXDShaderManager.h"
-#include "RendererHelpers.h"
 #include "StaticMeshRenderPass.h"
 #include "BillboardRenderPass.h"
 #include "GizmoRenderPass.h"
@@ -13,7 +11,6 @@
 #include "DepthBufferDebugPass.h"
 #include "FogRenderPass.h"
 #include <UObject/UObjectIterator.h>
-#include <UObject/Casts.h>
 #include "GameFrameWork/Actor.h"
 
 //------------------------------------------------------------------------------

@@ -367,7 +367,6 @@
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectFactory.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\PrimitiveDrawBatch.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponent.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Quad.h" />
     <ClInclude Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoRectangleComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SceneComponent.h" />
     <ClInclude Include="Engine\Source\Editor\UnrealEd\SceneMgr.h" />
