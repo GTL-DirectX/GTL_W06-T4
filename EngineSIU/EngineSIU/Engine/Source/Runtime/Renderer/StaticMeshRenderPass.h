@@ -1,20 +1,14 @@
 #pragma once
 #include "IRenderPass.h"
 #include "EngineBaseTypes.h"
-#include "Container/Set.h"
 
 #include "Define.h"
 
 class FDXDShaderManager;
-
 class UWorld;
-
 class UMaterial;
-
 class FEditorViewportClient;
-
 class UStaticMeshComponent;
-
 struct FStaticMaterial;
 
 class FStaticMeshRenderPass : public IRenderPass
@@ -24,7 +18,7 @@ public:
     
     ~FStaticMeshRenderPass();
     
-    virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
+    virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     
     virtual void PrepareRender() override;
 
