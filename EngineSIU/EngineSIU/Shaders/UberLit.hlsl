@@ -190,9 +190,7 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
 
     bool hasTexture = any(albedo != float3(0, 0, 0));
     
-    float3 baseColor = hasTexture ? albedo : matDiffuse;
-    
-    output.color = float4(baseColor, 1);
+
     /*if (IsLit)
     {
         float3 lightRgb = Lighting(Input.worldPos, Input.normal).rgb;
@@ -215,11 +213,13 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
 #elif LIGHTING_MODEL_LAMBERT
     {
         float3 lighting = CalculateLambertLighting(Input.WorldPos, normalize(Input.WorldNormal));
-        finalColor = baseColor * lighting + EmissiveColor;
+        output.color = baseColor * lighting + EmissiveColor;
     }
 #elif LIGHTING_MODEL_PHONG
 #else
-    // Lambert, Gouraud, Phong이 아닌 경우 기본 베이스 색상 + Emissive 출력
+    // Lambert, Gouraud, Phong이 아닌 경우 기본 베이스 색상
+    float3 baseColor = hasTexture ? albedo : matDiffuse;
+    output.color = float4(baseColor, 1);
 #endif
     return output;
     //return float4(finalColor, 1.0f);

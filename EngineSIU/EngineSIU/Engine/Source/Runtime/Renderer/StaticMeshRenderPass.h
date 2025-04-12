@@ -4,6 +4,7 @@
 
 #include "Define.h"
 
+class FLightManager;
 class FDXDShaderManager;
 class UWorld;
 class UMaterial;
@@ -25,6 +26,8 @@ public:
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     virtual void ClearRenderArr() override;
+
+    void SetLightManager(FLightManager* InLightManager) { LightManager = InLightManager; };
 
     void PrepareRenderState() const;
     
@@ -59,4 +62,6 @@ private:
     FGraphicsDevice* Graphics;
     
     FDXDShaderManager* ShaderManager;
+
+    FLightManager* LightManager;
 };

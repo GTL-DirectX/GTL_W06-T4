@@ -31,6 +31,7 @@ FStaticMeshRenderPass::FStaticMeshRenderPass()
     , BufferManager(nullptr)
     , Graphics(nullptr)
     , ShaderManager(nullptr)
+    ,LightManager(nullptr)
 {
 }
 
@@ -110,7 +111,6 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     BufferManager = InBufferManager;
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
-
     CreateShader();
 }
 

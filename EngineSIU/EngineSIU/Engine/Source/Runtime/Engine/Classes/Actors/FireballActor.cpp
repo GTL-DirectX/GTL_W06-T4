@@ -19,7 +19,7 @@ AFireballActor::AFireballActor()
     PointLightComponent = AddComponent<UPointLightComponent>();
     
 
-    PointLightComponent->SetAttenuation(0.5f);
+    PointLightComponent->SetAttenuationRadius(0.5f);
     
     PointLightComponent->SetSpecularColor(FLinearColor::Red);
     

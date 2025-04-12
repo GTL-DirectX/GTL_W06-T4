@@ -271,6 +271,7 @@ struct FPrimitiveCounts
     int pad[2];
 };
 
+/*
 #define MAX_LIGHTS 16
 enum ELightType {
     POINT_LIGHT = 1,
@@ -305,7 +306,7 @@ struct FLightBuffer
     FVector4 GlobalAmbientLight;
     int nLights;
     float    pad0, pad1, pad2;
-};
+};*/
 
 
 struct FMaterialConstants {
