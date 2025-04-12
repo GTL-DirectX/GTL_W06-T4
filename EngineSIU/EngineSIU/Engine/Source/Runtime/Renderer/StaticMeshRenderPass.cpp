@@ -84,11 +84,13 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi) const
 {
     switch (evi)
     {
-    case EViewModeIndex::VMI_Lit:
+    case EViewModeIndex::Lit_Gouraud:
+    case EViewModeIndex::Lit_Lambert:
+    case EViewModeIndex::Lit_Phong:
         UpdateLitUnlitConstant(1);
         break;
-    case EViewModeIndex::VMI_Wireframe:
-    case EViewModeIndex::VMI_Unlit:
+    case EViewModeIndex::Wireframe:
+    case EViewModeIndex::Unlit:
         UpdateLitUnlitConstant(0);
         break;
     }

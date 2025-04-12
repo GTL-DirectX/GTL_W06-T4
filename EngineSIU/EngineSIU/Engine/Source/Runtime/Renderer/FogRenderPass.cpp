@@ -160,7 +160,7 @@ void FFogRenderPass::PrepareRenderState(ID3D11ShaderResourceView* DepthSRV)
 
 void FFogRenderPass::RenderFog(const std::shared_ptr<FEditorViewportClient>& ActiveViewport, ID3D11ShaderResourceView* DepthSRV)
 {
-    if (ActiveViewport->GetViewMode() == EViewModeIndex::VMI_Wireframe || FogComponents.Num() <= 0
+    if (ActiveViewport->GetViewMode() == EViewModeIndex::Wireframe || FogComponents.Num() <= 0
         || !(ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Fog)))
         return;
 

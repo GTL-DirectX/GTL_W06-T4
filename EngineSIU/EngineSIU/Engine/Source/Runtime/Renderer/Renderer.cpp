@@ -49,7 +49,7 @@ void FRenderer::Release()
 void FRenderer::ChangeViewMode(EViewModeIndex evi)
 {
     StaticMeshRenderPass->ChangeViewMode(evi);
-    if (evi == EViewModeIndex::VMI_SceneDepth)
+    if (evi == EViewModeIndex::SceneDepth)
         IsSceneDepth = true;
     else
         IsSceneDepth = false;

@@ -1,15 +1,20 @@
 #pragma once
 #include "HAL/PlatformType.h"
 
+class FString;
 
 enum EViewModeIndex : uint8
 {
-    VMI_Lit,
-    VMI_Unlit,
-    VMI_Wireframe,
-    VMI_SceneDepth,
+    Lit_Gouraud,
+    Lit_Lambert,
+    Lit_Phong,
+    Unlit,
+    Wireframe,
+    SceneDepth,
+    Max
 };
 
+FString GetViewModeIndexAsString(enum EViewModeIndex InViewMode);
 
 enum ELevelViewportType : uint8
 {

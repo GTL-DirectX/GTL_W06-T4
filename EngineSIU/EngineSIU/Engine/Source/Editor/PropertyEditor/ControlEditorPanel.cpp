@@ -23,8 +23,9 @@
 
 #include "Actors/Cube.h"
 
+#include "Engine/EngineTypes.h"
 #include "Engine/EditorEngine.h"
-#include <Actors/HeightFogActor.h>
+#include "Actors/HeightFogActor.h"
 
 void ControlEditorPanel::Render()
 {
@@ -391,7 +392,14 @@ void ControlEditorPanel::CreateFlagButton() const
 
     ImGui::SameLine();
 
-    const char* ViewModeNames[] = { "Lit", "Unlit", "Wireframe", "SceneDepth" };
+    /*char* ViewModes[EViewModeIndex::Max];
+    for (int i = 0; i < EViewModeIndex::Max; i++)
+    {
+        TCHAR ViewMode = *GetData(GetViewModeIndexAsString((EViewModeIndex)i));
+        ViewModes[i] = &ViewMode;
+    }*/
+
+    const char* ViewModeNames[] = { "Lit_Gouraud", "Lit_Lambert", "Lit_Phong", "Unlit", "Wireframe", "SceneDepth"};
     
     int rawViewMode = (int)ActiveViewport->GetViewMode();
     int safeIndex = (rawViewMode >= 0) ? (rawViewMode % 4) : 0;
