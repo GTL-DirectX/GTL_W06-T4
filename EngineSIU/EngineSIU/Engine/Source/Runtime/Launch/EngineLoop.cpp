@@ -177,6 +177,8 @@ void FEngineLoop::Render() const
         Renderer.PrepareRender();
         Renderer.Render(LevelEditor->GetActiveViewportClient());
     }
+
+    Renderer.HotReload();
 }
 
 void FEngineLoop::Tick()
