@@ -281,6 +281,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponentBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\PointLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\SpotLightComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Material\MaterialTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\AssetManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EditorEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />

@@ -1,6 +1,11 @@
 // staticMeshPixelShader.hlsl
 
-Texture2D Textures : register(t0);
+Texture2D DiffuseTexture : register(t0);
+Texture2D AmbientTexture : register(t1);
+Texture2D SpecularTexture : register(t2);
+Texture2D BumpTexture : register(t3);
+Texture2D AlphaTexture : register(t4);
+
 SamplerState Sampler : register(s0);
 
 cbuffer MatrixConstants : register(b0)
@@ -32,11 +37,15 @@ struct FMaterial
     
     float3 EmissiveColor;
     float MaterialPad0;
+    
+    uint TextureSlotMask;
 };
+
 cbuffer MaterialConstants : register(b3)
 {
     FMaterial Material;
 }
+
 cbuffer FlagConstants : register(b4)
 {
     bool IsLit;
@@ -67,6 +76,7 @@ struct PS_INPUT
     float normalFlag : TEXCOORD1; // 노멀 유효 플래그
     float2 texcoord : TEXCOORD2; // UV 좌표
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
+    float3x3 tbn : TBN_MATRIX;
 };
 
 struct PS_OUTPUT
@@ -82,15 +92,26 @@ PS_OUTPUT mainPS(PS_INPUT input)
     output.UUID = UUID;
 
     // 1) 알베도 샘플링
-    float3 albedo = Textures.Sample(Sampler, input.texcoord).rgb;
+    float3 albedo = DiffuseTexture.Sample(Sampler, input.texcoord).rgb;
     // 2) 머티리얼 디퓨즈
     float3 matDiffuse = Material.DiffuseColor.rgb;
     // 3) 라이트 계산
 
-    bool hasTexture = any(albedo != float3(0, 0, 0));
+    bool hasTexture = Material.TextureSlotMask & (1 << 0);
     
     float3 baseColor = hasTexture ? albedo : matDiffuse;
 
+    float3 normal = input.normal;
+    
+    if (Material.TextureSlotMask & (1 << 3))
+    {
+        float3 normalMap = BumpTexture.Sample(Sampler, input.texcoord).rgb;
+        
+        normalMap = normalMap * 2.0f - 1.0f;
+
+        normal = normalize(mul(normalMap, input.tbn));
+    }
+    
     if (IsLit)
     {
         float3 lightRgb = Lighting(input.worldPos, input.normal).rgb;
@@ -105,7 +126,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     if (isSelected)
     {
         output.color += float4(0.02, 0.02, 0.02, 1);
-
     }
+
     return output;
 }
