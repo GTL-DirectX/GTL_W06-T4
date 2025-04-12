@@ -855,5 +855,6 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\DirectionalLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponentBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\LightRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\EngineBaseTypes.cpp" />
   </ItemGroup>
 </Project>

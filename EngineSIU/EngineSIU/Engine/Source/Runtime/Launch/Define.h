@@ -140,8 +140,8 @@ struct FGridParameters
 {
     float GridSpacing;
     int   NumGridLines;
+    float pad[2];
     FVector GridOrigin;
-    float pad;
 };
 struct FSimpleVertex
 {
@@ -267,9 +267,8 @@ struct FCone
 struct FPrimitiveCounts
 {
     int BoundingBoxCount;
-    int pad;
     int ConeCount;
-    int pad1;
+    int pad[2];
 };
 
 #define MAX_LIGHTS 16
@@ -324,18 +323,22 @@ struct FMaterialConstants {
 
 };
 
-struct FPerObjectConstantBuffer {
+/*struct FPerObjectConstantBuffer {
     FMatrix Model;      // 모델
     FMatrix ModelMatrixInverseTranspose; // normal 변환을 위한 행렬
     FVector4 UUIDColor;
     int IsSelected;
     FVector pad;
-};
+};*/
+struct FPerObjectConstantBuffer {
+    FMatrix Model;      // 모델
+    FMatrix View;
+    FMatrix Proj;
 
+    FMatrix ModelMatrixInverseTranspose; // normal 변환을 위한 행렬
+};
 struct FCameraConstantBuffer
 {
-    FMatrix View;
-    FMatrix Projection;
     FVector CameraPosition;
     float pad;
 };

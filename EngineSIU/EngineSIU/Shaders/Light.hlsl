@@ -1,3 +1,4 @@
+/*
 // light.hlsl
 
 #define MAX_LIGHTS 16 
@@ -128,6 +129,7 @@ float4 Lighting(float3 vPosition, float3 vNormal)
     
     return cColor;
 }
+*/
 
 
 

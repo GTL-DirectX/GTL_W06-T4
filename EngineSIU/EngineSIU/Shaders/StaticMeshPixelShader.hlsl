@@ -1,3 +1,4 @@
+/*
 // staticMeshPixelShader.hlsl
 
 Texture2D Textures : register(t0);
@@ -109,3 +110,4 @@ PS_OUTPUT mainPS(PS_INPUT input)
     }
     return output;
 }
+*/

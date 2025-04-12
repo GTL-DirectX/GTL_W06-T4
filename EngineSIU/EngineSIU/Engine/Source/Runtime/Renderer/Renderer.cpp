@@ -95,6 +95,16 @@ void FRenderer::ReleaseConstantBuffer()
 {
     BufferManager->ReleaseConstantBuffer();
 }
+void FRenderer::BindGlobalConstantBuffers()
+{
+    TArray<FString> Keys = {
+        TEXT("FPerObjectConstantBuffer"),
+        TEXT("FCameraConstantBuffer"),
+        TEXT("FMaterialConstants")
+    };
+    BufferManager->BindConstantBuffers(Keys, /*StartSlot=*/10, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffers(Keys, /*StartSlot=*/10, EShaderStage::Pixel);
+}
 
 void FRenderer::PrepareRender()
 {
@@ -121,6 +131,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
 
     ChangeViewMode(ActiveViewport->GetViewMode());
+    BindGlobalConstantBuffers();
 
     StaticMeshRenderPass->Render(ActiveViewport);
     UpdateLightBufferPass->Render(ActiveViewport);

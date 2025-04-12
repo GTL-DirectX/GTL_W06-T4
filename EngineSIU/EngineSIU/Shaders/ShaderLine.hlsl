@@ -1,30 +1,20 @@
+#include "ShaderCommon.hlsl"
 
-cbuffer MatrixBuffer : register(b0)
-{
-    row_major float4x4 MVP;
-};
 
-cbuffer GridParametersData : register(b1)
+cbuffer GridParametersData : register(b0)
 {
     float GridSpacing;
     int GridCount; // 총 grid 라인 수
+    float2 pad0;
+
     float3 GridOrigin; // Grid의 중심
-    float Padding;
-};
-cbuffer CameraConstants : register(b2)
-{
-    row_major float4x4 View;
-    row_major float4x4 Projection;
-    float3 CameraPosition;
-    float CameraPad;
 };
 
-cbuffer PrimitiveCounts : register(b3)
+cbuffer PrimitiveCounts : register(b1)
 {
     int BoundingBoxCount; // 렌더링할 AABB의 개수
-    int pad;
     int ConeCount; // 렌더링할 cone의 개수
-    int pad1;
+    float2 pad1;
 };
 
 struct FBoundingBoxData
@@ -41,10 +31,11 @@ struct FConeData
     
     float3 ConeBaseCenter; // 원뿔 밑면 중심
     float ConeHeight; // 원뿔 높이 (Apex와 BaseCenter 간 차이)
+
     float4 Color;
     
     int ConeSegmentCount; // 원뿔 밑면 분할 수
-    float pad[3];
+    float3 pad;
 };
 struct FOrientedBoxCornerData
 {
@@ -318,7 +309,7 @@ PS_INPUT mainVS(VS_INPUT input)
 
     // 출력 변환
     output.WorldPosition = float4(pos, 1.0);
-    output.Position = mul(float4(pos, 1.0), MVP);
+    output.Position = mul(float4(pos, 1.0), GetMVP());
     output.Color = color;
     output.instanceID = input.instanceID;
     return output;

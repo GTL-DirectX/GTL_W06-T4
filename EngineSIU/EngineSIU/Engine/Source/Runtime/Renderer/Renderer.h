@@ -60,6 +60,7 @@ public:
     void CreateConstantBuffers();
     void ReleaseConstantBuffer();
 
+    void BindGlobalConstantBuffers();
 public:
     FGraphicsDevice* Graphics;
     FDXDBufferManager* BufferManager;
