@@ -7,6 +7,7 @@ cbuffer MatrixConstants : register(b0)
     bool isSelected;
     float3 MatrixPad0;
 };
+
 cbuffer CameraConstants : register(b1)
 {
     row_major float4x4 View;

@@ -103,18 +103,24 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     float3 normal = input.normal;
     
+    float3x3 MInverse3x3 = float3x3(
+        MInverseTranspose._11, MInverseTranspose._12, MInverseTranspose._13,
+        MInverseTranspose._21, MInverseTranspose._22, MInverseTranspose._23,
+        MInverseTranspose._31, MInverseTranspose._32, MInverseTranspose._33
+    );
+    
     if (Material.TextureSlotMask & (1 << 3))
     {
         float3 normalMap = BumpTexture.Sample(Sampler, input.texcoord).rgb;
         
         normalMap = normalMap * 2.0f - 1.0f;
 
-        normal = normalize(mul(normalMap, input.tbn));
+        normal = normalize(mul(mul(normalMap, input.tbn), MInverse3x3));
     }
     
     if (IsLit)
     {
-        float3 lightRgb = Lighting(input.worldPos, input.normal).rgb;
+        float3 lightRgb = Lighting(input.worldPos, normal).rgb;
         float3 litColor = baseColor * lightRgb;
         output.color = float4(litColor, 1);
     }
@@ -123,6 +129,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         output.color = float4(baseColor, 1);
         
     }
+ 
     if (isSelected)
     {
         output.color += float4(0.02, 0.02, 0.02, 1);
