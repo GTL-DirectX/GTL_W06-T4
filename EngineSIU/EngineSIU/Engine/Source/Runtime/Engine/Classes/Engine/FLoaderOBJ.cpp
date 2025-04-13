@@ -313,7 +313,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials[MaterialIndex].TextureSlotMask |= MaterialTextureFlags::Diffuse;
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
-            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath);
+            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
         }
 
         if (Token == "map_Ks")
@@ -326,12 +326,12 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials[MaterialIndex].TextureSlotMask |= MaterialTextureFlags::Specular;
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
-            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].SpecularTexturePath);
+            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].SpecularTexturePath, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
         }
 
         // Normal로 해석될 수 있는 키워드를 전부 포함하도록 함
         // Bump와 Normal을 둘 다 사용하는 케이스는 일단 제외
-        if (Token == "bump" || Token == "map_bump" || Token == "norm" || Token == "map_Kn")
+        if (Token == "bump" || Token == "map_bump" || Token == "map_Bump" || Token == "norm" || Token == "map_Kn")
         {
             LineStream >> Line;
             OutFStaticMesh.Materials[MaterialIndex].BumpTextureName = Line;
@@ -341,7 +341,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials[MaterialIndex].TextureSlotMask |= MaterialTextureFlags::Bump;
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
-            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath);
+            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath, DXGI_FORMAT_R8G8B8A8_UNORM);
         }
     }
 
@@ -430,14 +430,14 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
     return true;
 }
 
-bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename)
+bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename, DXGI_FORMAT textureFormat)
 {
     if (FEngineLoop::ResourceManager.GetTexture(Filename))
     {
         return true;
     }
 
-    HRESULT hr = FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, nullptr, Filename.c_str());
+    HRESULT hr = FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, nullptr, Filename.c_str(), textureFormat);
 
     if (FAILED(hr))
     {
@@ -749,7 +749,7 @@ bool FManagerOBJ::LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStati
         {
             if (FEngineLoop::ResourceManager.GetTexture(Texture) == nullptr)
             {
-                FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, nullptr, Texture.c_str());
+                FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, nullptr, Texture.c_str(), FEngineLoop::ResourceManager.GetTexture(Texture)->TextureFormat);
             }
         }
     }
