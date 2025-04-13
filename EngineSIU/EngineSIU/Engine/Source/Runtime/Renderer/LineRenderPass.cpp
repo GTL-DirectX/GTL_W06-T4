@@ -61,8 +61,8 @@ void FLineRenderPass::CreateShader()
 
 void FLineRenderPass::PrepareLineShader() const
 {
-    Graphics->DeviceContext->VSSetShader(VertexLineShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelLineShader, nullptr, 0);
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"VertexLineShader"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"PixelLineShader"), nullptr, 0);
 
     BufferManager->BindConstantBuffer(TEXT("FPerObjectConstantBuffer"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FPerObjectConstantBuffer"), 0, EShaderStage::Pixel);
