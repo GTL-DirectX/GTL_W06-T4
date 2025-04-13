@@ -15,6 +15,42 @@ cbuffer CameraConstants : register(b1)
     float pad;
 };
 
+#define MAX_LIGHTS 16 
+
+#define POINT_LIGHT         1
+#define SPOT_LIGHT          2
+
+struct LIGHT
+{
+    float3 m_cDiffuse;
+    float pad2;
+
+    float3 m_cSpecular;
+    float pad3;
+
+    float3 m_vPosition;
+    float m_fFalloff; // 스팟라이트의 감쇠 인자
+
+    float3 m_vDirection;
+    float pad4;
+
+    float m_fAttenuation; // 거리 기반 감쇠 계수
+    int m_bEnable;
+    int m_nType;
+    float m_fIntensity; // 광원 강도
+    
+    float m_fAttRadius; // 감쇠 반경 (Attenuation Radius)
+    float3 LightPad;
+};
+
+cbuffer cbLights : register(b2)
+{
+    LIGHT gLights[MAX_LIGHTS];
+    float4 gcGlobalAmbientLight;
+    int gnLights;
+    float3 padCB;
+};
+
 struct VS_INPUT
 {
     float3 position : POSITION; // 버텍스 위치
@@ -36,6 +72,54 @@ struct PS_INPUT
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
 };
 
+float4 GouraudLight(float3 vPosition, float3 vNormal)
+{
+    float4 cColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [unroll(MAX_LIGHTS)]
+    for (int i = 0; i < gnLights; i++)
+    {
+        if (gLights[i].m_bEnable)
+        {
+            if (gLights[i].m_nType == POINT_LIGHT)
+            {
+                float3 lightDir = gLights[i].m_vPosition - vPosition;
+                float fDistance = length(lightDir);
+
+                if (fDistance > gLights[i].m_fAttRadius)
+                {
+                    continue;
+                }
+
+                lightDir = normalize(lightDir);
+            
+                // 거리에 따른 감쇠 계산
+                float attenuation = 1.0f - saturate(fDistance / gLights[i].m_fAttRadius);
+            
+                // 디퓨즈 조명 계산
+                float diffuseIntensity = max(dot(vNormal, lightDir), 0.0f);
+            
+                // 스페큘러 조명 계산 (선택사항)
+                float3 viewDir = normalize(CameraPosition - vPosition);
+                float3 reflectDir = reflect(-lightDir, vNormal);
+                float specularIntensity = pow(max(dot(viewDir, reflectDir), 0.0f), gLights[i].m_cSpecular.x);
+            
+                // 이 조명의 기여도 합산
+                cColor += float4(gLights[i].m_cDiffuse * (diffuseIntensity + specularIntensity * specularIntensity) * attenuation, 1.0f);
+            }
+            else if (gLights[i].m_nType == SPOT_LIGHT)
+            {
+                // cColor += SpotLight(i, vPosition, vNormal);
+            }
+        }
+    }
+    
+    // 전역 환경광 추가
+    cColor += gcGlobalAmbientLight;
+    cColor.a = 1;
+    
+    return cColor;
+}
+
 PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
@@ -49,10 +133,10 @@ PS_INPUT mainVS(VS_INPUT input)
     float4 viewPosition = mul(worldPosition, View);
     
     output.position = mul(viewPosition, Projection);
-    
-    output.color = input.color;
   
     output.normal = normalize(mul(input.normal, (float3x3) MInverseTranspose));
+    
+    output.color = GouraudLight(worldPosition, output.normal);
     
     output.texcoord = input.texcoord;
     

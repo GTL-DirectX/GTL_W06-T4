@@ -91,17 +91,18 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     float3 baseColor = hasTexture ? albedo : matDiffuse;
 
-    if (IsLit)
-    {
-        float3 lightRgb = Lighting(input.worldPos, input.normal).rgb;
-        float3 litColor = baseColor * lightRgb;
-        output.color = float4(litColor, 1);
-    }
-    else
-    {
-        output.color = float4(baseColor, 1);
-        
-    }
+    // if (IsLit)
+    // {
+    //     float3 lightRgb = Lighting(input.worldPos, input.normal).rgb;
+    //     float3 litColor = baseColor * lightRgb;
+    //     output.color = float4(litColor, 1);
+    // }
+    // else
+    // {
+    //     output.color = float4(baseColor, 1);
+    //     
+    // }
+    output.color = float4(baseColor,1.0f) * input.color;
     if (isSelected)
     {
         output.color += float4(0.02, 0.02, 0.02, 1);
