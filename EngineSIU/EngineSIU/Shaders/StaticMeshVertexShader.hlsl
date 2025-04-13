@@ -98,13 +98,8 @@ float4 GouraudLight(float3 vPosition, float3 vNormal)
                 // 디퓨즈 조명 계산
                 float diffuseIntensity = max(dot(vNormal, lightDir), 0.0f);
             
-                // 스페큘러 조명 계산 (선택사항)
-                float3 viewDir = normalize(CameraPosition - vPosition);
-                float3 reflectDir = reflect(-lightDir, vNormal);
-                float specularIntensity = pow(max(dot(viewDir, reflectDir), 0.0f), gLights[i].m_cSpecular.x);
-            
                 // 이 조명의 기여도 합산
-                cColor += float4(gLights[i].m_cDiffuse * (diffuseIntensity + specularIntensity * specularIntensity) * attenuation, 1.0f);
+                cColor += float4(gLights[i].m_cDiffuse * diffuseIntensity * attenuation, 1.0f);
             }
             else if (gLights[i].m_nType == SPOT_LIGHT)
             {
