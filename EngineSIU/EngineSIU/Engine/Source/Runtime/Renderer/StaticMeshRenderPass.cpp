@@ -152,7 +152,7 @@ void FStaticMeshRenderPass::PrepareRenderState() const
                               TEXT("FSubMeshConstants"),
                               TEXT("FTextureConstants")
     };
-    BufferManager->BindConstantBuffers(PSBufferKeys, 1, EShaderStage::Pixel);
+    BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
 }
 
 void FStaticMeshRenderPass::UpdatePerObjectConstant(const FMatrix& Model, const FMatrix& View, const FMatrix& Projection, const FVector4& UUIDColor, bool Selected) const

@@ -25,7 +25,7 @@ struct FMaterial
 {
     float3 DiffuseColor;
     float TransparencyScalar;
-    float4 AmbientColor;
+    float3 AmbientColor;//원래 4?
     float DensityScalar;
     float3 SpecularColor;
     float SpecularScalar;

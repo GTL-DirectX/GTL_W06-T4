@@ -16,7 +16,14 @@ public:
 public:
     virtual UObject* Duplicate(UObject* InOuter)override;
     const FLight& GetLight() const { return LightData; }
-    void SetLight(const FLight& InLight) { LightData = InLight; }
+    void SetLight(const FLight& InLight)
+    {
+        LightData = InLight;/*
+        if (LightData.DiffuseColor == FLinearColor::Black)
+        {
+            LightData.DiffuseColor = FLinearColor::White;
+        }*/
+    }
     FLinearColor GetSpecularColor() const { return LightData.SpecularColor; }
     void SetSpecularColor(const FLinearColor& InColor) { LightData.SpecularColor = InColor; }
     FLinearColor GetDiffuseColor() const { return LightData.DiffuseColor; }

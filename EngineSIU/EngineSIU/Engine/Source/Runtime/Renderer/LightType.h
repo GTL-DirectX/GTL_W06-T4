@@ -17,6 +17,10 @@ struct FLight
         : DiffuseColor(InDiffuse), SpecularColor(InSpecular), Intensity(InIntensity)
     {
     }
+    FLight(const FLinearColor& InDiffuse, const FLinearColor& InSpecular, float InIntensity)
+        : DiffuseColor(InDiffuse), SpecularColor(InSpecular), Intensity(InIntensity)
+    {
+    }
 };
 // --------------------------------------------------
 // GPU에 전달할 라이트 구조체 (상수버퍼용)
@@ -49,7 +53,7 @@ struct FPointLightInfo
     float AttenuationRadius = 100.0f;
 
     float LightFalloffExponent = 2.0f;
-    FVector2D Pad = FVector2D(0.0f, 0.0f); // align 16
+    FVector Pad = FVector(); // align 16
 };
 
 // 스포트라이트 (Spot)

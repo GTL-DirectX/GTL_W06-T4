@@ -24,7 +24,7 @@ public:
 
     virtual ELightType GetLightType() const=0;
     // GPU 업로드용 LightInfo를 추출 (각 하위 클래스에서 오버라이드)
-    virtual void UploadLightInfo(void* OutInfo)const {};
+    virtual void UploadLightInfo(void* OutInfo)const=0;
     bool IsVisible() const { return bVisible; }
 protected:
 

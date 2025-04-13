@@ -24,7 +24,7 @@ public:
     virtual UObject* Duplicate(UObject* InOuter) override
     {
         ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
-        NewComponent->SetLight(GetLight());
+        //NewComponent->SetLight(GetLight());
         NewComponent->AttRadius = AttRadius;
         NewComponent->Falloff = Falloff;
         return NewComponent;

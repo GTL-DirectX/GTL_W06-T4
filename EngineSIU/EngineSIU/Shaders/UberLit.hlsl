@@ -20,20 +20,25 @@ struct FPointLightInfo
 {
     float3 Color;
     float Intensity;
+
     float3 Position;
     float AttenuationRadius;
+
     float LightFalloffExponent;
-    float2 Pad;
+    float3 Pad;
 };
 
 struct FSpotLightInfo
 {
     float3 Color;
     float Intensity;
+
     float3 Position;
     float AttenuationRadius;
+
     float LightFalloffExponent;
     float3 Direction;
+
     float InnerConeAngle;
     float OuterConeAngle;
     float2 Pad;
@@ -134,12 +139,19 @@ VS_OUT Uber_VS(VS_IN input)
 }
 float3 CalculateLambertLighting(float3 worldPos, float3 normal)
 {
-    float3 result = AmbientLight.Color * AmbientLight.Intensity;
+    float3 result = AmbientLight.Color * AmbientLight.Intensity * Material.AmbientColor;
 
     // Directional Light
-    float3 lightDir = normalize(-DirectionalLight.Direction);
-    float diff = max(dot(normal, lightDir), 0.0f);
-    result += DirectionalLight.Color * DirectionalLight.Intensity * diff;
+    {
+        float3 lightDir = normalize(-DirectionalLight.Direction);
+        float diff = max(dot(normal, lightDir), 0.0f);
+        result += DirectionalLight.Color * DirectionalLight.Intensity * Material.DiffuseColor * diff;
+
+        float3 viewDir = normalize(CameraPosition - worldPos);
+        float3 halfDir = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(normal, halfDir), 0.0f), 16); // 하드코딩된 shininess
+        result += DirectionalLight.Color * Material.SpecularColor * spec;
+    }
 
     // Point Lights
     for (int i = 0; i < NUM_POINT_LIGHT; ++i)
@@ -149,11 +161,16 @@ float3 CalculateLambertLighting(float3 worldPos, float3 normal)
         if (distance > PointLights[i].AttenuationRadius)
             continue;
 
-        float3 L = normalize(toLight);
-        float NdotL = max(dot(normal, L), 0.0f);
+        float3 lightDir = normalize(toLight);
+        float diff = max(dot(normal, lightDir), 0.0f);
+        float att = pow(saturate(1.0f - distance / PointLights[i].AttenuationRadius), PointLights[i].LightFalloffExponent);
 
-        float attenuation = pow(saturate(1.0f - distance / PointLights[i].AttenuationRadius), PointLights[i].LightFalloffExponent);
-        result += PointLights[i].Color * PointLights[i].Intensity * NdotL * attenuation;
+        float3 viewDir = normalize(CameraPosition - worldPos);
+        float3 halfDir = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(normal, halfDir), 0.0f), 16);
+
+        result += PointLights[i].Color * PointLights[i].Intensity * Material.DiffuseColor * diff * att;
+        result += PointLights[i].Color * Material.SpecularColor * spec * att;
     }
 
     // Spot Lights
@@ -164,21 +181,25 @@ float3 CalculateLambertLighting(float3 worldPos, float3 normal)
         if (distance > SpotLights[i].AttenuationRadius)
             continue;
 
-        float3 L = normalize(toLight);
-        float NdotL = max(dot(normal, L), 0.0f);
+        float3 lightDir = normalize(toLight);
+        float diff = max(dot(normal, lightDir), 0.0f);
+        float3 viewDir = normalize(CameraPosition - worldPos);
+        float3 halfDir = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(normal, halfDir), 0.0f), 16);
 
-        float3 spotDir = normalize(-SpotLights[i].Direction);
-        float cosAngle = dot(L, spotDir);
+        float angle = dot(lightDir, normalize(-SpotLights[i].Direction));
         float inner = cos(SpotLights[i].InnerConeAngle);
         float outer = cos(SpotLights[i].OuterConeAngle);
-        float spotEffect = smoothstep(outer, inner, cosAngle);
+        float spot = smoothstep(outer, inner, angle);
+        float att = pow(saturate(1.0f - distance / SpotLights[i].AttenuationRadius), SpotLights[i].LightFalloffExponent);
 
-        float attenuation = pow(saturate(1.0f - distance / SpotLights[i].AttenuationRadius), SpotLights[i].LightFalloffExponent);
-        result += SpotLights[i].Color * SpotLights[i].Intensity * NdotL * spotEffect * attenuation;
+        result += SpotLights[i].Color * SpotLights[i].Intensity * Material.DiffuseColor * diff * spot * att;
+        result += SpotLights[i].Color * Material.SpecularColor * spec * spot * att;
     }
 
     return result;
 }
+
 PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
 {
     PS_OUT output;
@@ -212,8 +233,12 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
 
 #elif LIGHTING_MODEL_LAMBERT
     {
-        float3 lighting = CalculateLambertLighting(Input.WorldPos, normalize(Input.WorldNormal));
-        output.color = baseColor * lighting + EmissiveColor;
+    float3 lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal));
+    float3 baseColor = any(Textures.Sample(Sampler, Input.texcoord).rgb != float3(0, 0, 0))
+                       ? Textures.Sample(Sampler, Input.texcoord).rgb
+                       : Material.DiffuseColor;
+
+    output.color = float4(baseColor * lighting + Material.EmissiveColor, 1.0f);
     }
 #elif LIGHTING_MODEL_PHONG
 #else
@@ -221,6 +246,14 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
     float3 baseColor = hasTexture ? albedo : matDiffuse;
     output.color = float4(baseColor, 1);
 #endif
+    float3 lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal));
+    lighting = saturate(lighting);
+    baseColor = any(Textures.Sample(Sampler, Input.texcoord).rgb != float3(0, 0, 0))
+                       ? Textures.Sample(Sampler, Input.texcoord).rgb
+                       : Material.DiffuseColor;
+    output.color = float4(baseColor * (lighting + Material.EmissiveColor), 1.0f);
+    
+    //output.color = float4(baseColor * (lighting + float3(0.1, 0.1, 0.1)), 1.0f);
     return output;
     //return float4(finalColor, 1.0f);
 }

@@ -9,7 +9,7 @@ ALight::ALight()
     RootComponent = BillboardComponent;
 
     BillboardComponent->SetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
-
+    PointLightComponent->SetLight(FLight(FLinearColor::White,FLinearColor::White,1.0f));
     PointLightComponent->AttachToComponent(RootComponent);
 
 }
