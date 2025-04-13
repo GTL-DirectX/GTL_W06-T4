@@ -18,7 +18,7 @@ struct FVertexShaderInfo
     std::wstring FileName;
     std::string EntryPoint;
     ID3D11VertexShader* VertexShader;
-    D3D11_INPUT_ELEMENT_DESC* Layout;
+    std::vector<D3D11_INPUT_ELEMENT_DESC> Layout;
     uint32_t LayoutSize;
 };
 

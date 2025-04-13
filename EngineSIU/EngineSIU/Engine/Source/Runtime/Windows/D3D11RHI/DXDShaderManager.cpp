@@ -110,7 +110,7 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
     NewVertexShaderInfo.FileName = FileName;
     NewVertexShaderInfo.EntryPoint = EntryPoint;
     NewVertexShaderInfo.VertexShader = NewVertexShader;
-    NewVertexShaderInfo.Layout = nullptr;
+    NewVertexShaderInfo.Layout = {};
     NewVertexShaderInfo.LayoutSize = 0;
 
     VertexShaders[Key] = NewVertexShaderInfo;
@@ -173,7 +173,7 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
     NewVertexShaderInfo.FileName = FileName;
     NewVertexShaderInfo.EntryPoint = EntryPoint;
     NewVertexShaderInfo.VertexShader = NewVertexShader;
-    NewVertexShaderInfo.Layout = Layout;
+    NewVertexShaderInfo.Layout.assign(Layout, Layout + LayoutSize);
     NewVertexShaderInfo.LayoutSize = LayoutSize;
 
     VertexShaders[Key] = NewVertexShaderInfo;
@@ -226,8 +226,9 @@ void FDXDShaderManager::HotReloadShader()
         {
             UE_LOG(LogLevel::Display, TEXT("Shader Hot Reload"));
             Value.VertexShader->Release();
-            AddVertexShaderAndInputLayout(Key, Value.FileName, Value.EntryPoint, Value.Layout, Value.LayoutSize);
-            UpdateShaderFileTime(Key);
+            AddVertexShaderAndInputLayout(Key, Value.FileName, Value.EntryPoint, Value.Layout.data(), Value.LayoutSize);
+            //Value.VertexShader = GetVertexShaderByKey(Key);
+            UpdateShaderFileTime(Value.FileName);
         }
     }
 
@@ -237,7 +238,8 @@ void FDXDShaderManager::HotReloadShader()
         {
             Value.PixelShader->Release();
             AddPixelShader(Key, Value.FileName, Value.EntryPoint);
-            UpdateShaderFileTime(Key);
+            //Value.PixelShader = GetPixelShaderByKey(Key);
+            UpdateShaderFileTime(Value.FileName);
         }
     }
 
@@ -245,6 +247,10 @@ void FDXDShaderManager::HotReloadShader()
 
 bool FDXDShaderManager::IsOutDated(const std::wstring& FileName)
 {
+    if (!std::filesystem::exists(FileName)) {
+        return false;
+    }
+
     std::filesystem::file_time_type CurrentTime = std::filesystem::last_write_time(FileName);
 
     if (ShaderFileTimeMap.Contains(FileName))

@@ -54,7 +54,7 @@ PS_INPUT mainVS(VS_INPUT input)
   
     output.normal = normalize(mul(input.normal, (float3x3) MInverseTranspose));
     
-    //output.texcoord = input.texcoord;
+    output.texcoord = input.texcoord;
     
     return output;
 }
