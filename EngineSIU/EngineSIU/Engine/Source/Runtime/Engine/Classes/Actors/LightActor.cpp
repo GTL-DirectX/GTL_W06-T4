@@ -10,7 +10,8 @@ ALight::ALight()
     BillboardComponent = AddComponent<UBillboardComponent>();
     BillboardComponent->SetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
     SetRootComponent(BillboardComponent);
-
+    FEngineLoop::PrimitiveDrawBatch.
+        AddConeToBatch(FVector(0, 0, 0), 1.0f, 1.0f, 10, FVector4(1,1,1,1), FMatrix::Identity);
     LightType = ELightType::Point; // 기본 타입은 .cpp에서 설정
     SetLightType(LightType);       // 실제 LightComponent 생성
 }

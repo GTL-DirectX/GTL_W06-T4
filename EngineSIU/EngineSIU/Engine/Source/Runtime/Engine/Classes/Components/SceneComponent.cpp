@@ -43,7 +43,8 @@ int USceneComponent::CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDi
 FVector USceneComponent::GetForwardVector() const
 {
 	FVector Forward = FVector(1.f, 0.f, 0.0f);
-	Forward = JungleMath::FVectorRotate(Forward, RelativeRotation);
+	//Forward = JungleMath::FVectorRotate(Forward, RelativeRotation);
+    Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
 	return Forward;
 }
 

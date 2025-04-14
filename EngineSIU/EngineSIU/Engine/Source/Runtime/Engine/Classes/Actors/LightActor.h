@@ -15,9 +15,10 @@ public:
 
     void SetLightType(ELightType InType);
     ELightType GetLightType() const { return LightType; }
+
+    ULightComponent* GetLightComponent() const { return LightComponent; }
 protected:
     ELightType LightType;
-  
     UPROPERTY
     (ULightComponent*, LightComponent, = nullptr);
 

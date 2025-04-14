@@ -269,7 +269,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             {.label = "PointLight", .obj = OBJ_PointLight },
             {.label = "DirectionalLight", .obj = OBJ_DirectionalLight },
             {.label = "SpotLight",    .obj = OBJ_SpotLight },
-            {.label = "AmbientLight", .obj = OBJ_AmbientLight },
+            //{.label = "AmbientLight", .obj = OBJ_AmbientLight },
             {.label = "Particle",  .obj = OBJ_PARTICLE },
             {.label = "Text",      .obj = OBJ_Text },
             {.label = "Fireball",  .obj = OBJ_Fireball},
@@ -321,13 +321,13 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     LightActor->SetLightType(ELightType::Spot);
                     break;
                 }
-                case OBJ_AmbientLight:
+                /*case OBJ_AmbientLight:
                 {
                     ALight* LightActor = World->SpawnActor<ALight>();
                     LightActor->SetActorLabel(TEXT("OBJ_AmbientLight"));
                     LightActor->SetLightType(ELightType::Ambient);
                     break;
-                }
+                }*/
 
                 case OBJ_PARTICLE:
                 {
