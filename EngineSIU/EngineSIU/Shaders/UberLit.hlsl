@@ -44,7 +44,11 @@ struct FSpotLightInfo
     float2 Pad;
 };
 
-Texture2D Textures : register(t0);
+Texture2D DiffuseTexture : register(t0);
+Texture2D AmbientTexture : register(t1);
+Texture2D SpecularTexture : register(t2);
+Texture2D BumpTexture : register(t3);
+Texture2D AlphaTexture : register(t4);
 SamplerState Sampler : register(s0);
 cbuffer Lighting : register(b0)
 {
@@ -96,7 +100,9 @@ struct VS_OUT
     float normalFlag : TEXCOORD1; // 노멀 유효 플래그 (1.0 또는 0.0)
     float2 texcoord : TEXCOORD2; // UV 좌표
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
+    float3x3 tbn : TBN_MATRIX; // TBN Matrix for normal mapping
 };
+
 struct PS_OUT
 {
     float4 color : SV_Target0;
@@ -122,9 +128,17 @@ VS_OUT Uber_VS(VS_IN input)
     output.color = input.color;
   
     output.normal = normalize(mul(input.normal, (float3x3) MInverseTranspose));
+    float3 biTangent = cross(input.normal, input.tangent);
+    
+    float3x3 tbn =
+    {
+        input.tangent.x, input.tangent.y, input.tangent.z,
+        biTangent.x, biTangent.y, biTangent.z,
+        input.normal.x, input.normal.y, input.normal.z 
+    };
+    output.tbn = tbn;
     
     output.texcoord = input.texcoord;
-    
 
     //color 일단 제거
 #if LIGHTING_MODEL_GOURAUD
@@ -204,13 +218,12 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
 {
     PS_OUT output;
     // 1) 알베도 샘플링
-    float3 albedo = Textures.Sample(Sampler, Input.texcoord).rgb;
+    float3 albedo = DiffuseTexture.Sample(Sampler, Input.texcoord).rgb;
     // 2) 머티리얼 디퓨즈
     float3 matDiffuse = Material.DiffuseColor.rgb;
     // 3) 라이트 계산
 
     bool hasTexture = any(albedo != float3(0, 0, 0));
-    
 
     /*if (IsLit)
     {
@@ -248,8 +261,8 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
 #endif
     float3 lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal));
     lighting = saturate(lighting);
-    baseColor = any(Textures.Sample(Sampler, Input.texcoord).rgb != float3(0, 0, 0))
-                       ? Textures.Sample(Sampler, Input.texcoord).rgb
+    baseColor = any(DiffuseTexture.Sample(Sampler, Input.texcoord).rgb != float3(0, 0, 0))
+                       ? DiffuseTexture.Sample(Sampler, Input.texcoord).rgb
                        : Material.DiffuseColor;
     output.color = float4(baseColor * (lighting + Material.EmissiveColor), 1.0f);
     
