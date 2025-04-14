@@ -127,9 +127,9 @@ void FStaticMeshRenderPass::PrepareRender()
 
 void FStaticMeshRenderPass::PrepareRenderState() const
 {
-    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader"), nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader"), nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader"));
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"UberLitVS"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"UberLitPS"), nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"UberLitVS"));
     
     // 상수 버퍼 바인딩 예시
     /*
