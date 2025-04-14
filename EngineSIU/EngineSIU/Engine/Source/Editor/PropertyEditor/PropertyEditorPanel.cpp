@@ -15,6 +15,8 @@
 #include "Engine/Engine.h"
 #include "Components/HeightFogComponent.h"
 #include "Components/ProjectileMovementComponent.h"
+#include "Components/Light/AmbientLightComponent.h"
+#include "Components/Light/DirectionalLightComponent.h"
 
 #include "Engine/AssetManager.h"
 #include "UObject/UObjectIterator.h"
@@ -110,7 +112,7 @@ void PropertyEditorPanel::Render()
 
             if (ImGui::TreeNodeEx("Light Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
             {
-                // ✅ 공통 색상 속성
+                // ✅ 공통 속성: 색상 + 강도
                 DrawColorProperty("Base Color",
                     [&]() { return lightObj->GetDiffuseColor(); },
                     [&](FLinearColor c) { lightObj->SetDiffuseColor(c); });
@@ -123,46 +125,53 @@ void PropertyEditorPanel::Render()
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 10000.0f, "%1.f"))
                     lightObj->SetIntensity(Intensity);
 
-                // ✅ Point Light 속성
+                // ✅ Point Light 전용
                 if (auto* PointLight = dynamic_cast<UPointLightComponent*>(lightObj))
                 {
                     float Falloff = PointLight->GetFalloff();
-                    if (ImGui::SliderFloat("Falloff", &Falloff, 0.1f, 10.0f, "%.2f")) {
+                    if (ImGui::SliderFloat("Falloff", &Falloff, 0.1f, 10.0f, "%.2f"))
                         PointLight->SetFalloff(Falloff);
-                    }
 
                     float Radius = PointLight->GetAttenuationRadius();
-                    if (ImGui::SliderFloat("Attenuation Radius", &Radius, 0.01f, 10000.f, "%.1f")) {
+                    if (ImGui::SliderFloat("Attenuation Radius", &Radius, 0.01f, 10000.f, "%.1f"))
                         PointLight->SetAttenuationRadius(Radius);
-                    }
                 }
 
-                // ✅ Spot Light 속성
+                // ✅ Spot Light 전용
                 if (auto* SpotLight = dynamic_cast<USpotLightComponent*>(lightObj))
                 {
                     float Falloff = SpotLight->GetFalloff();
-                    if (ImGui::SliderFloat("Falloff", &Falloff, 0.1f, 10.0f, "%.2f")) {
+                    if (ImGui::SliderFloat("Falloff", &Falloff, 0.1f, 10.0f, "%.2f"))
                         SpotLight->SetFalloff(Falloff);
-                    }
 
                     float Radius = SpotLight->GetAttenuationRadius();
-                    if (ImGui::SliderFloat("Attenuation Radius", &Radius, 0.01f, 10000.f, "%.1f")) {
+                    if (ImGui::SliderFloat("Attenuation Radius", &Radius, 0.01f, 10000.f, "%.1f"))
                         SpotLight->SetAttenuationRadius(Radius);
-                    }
 
                     float Inner = SpotLight->GetInnerConeAngle();
-                    if (ImGui::SliderFloat("Inner Cone", &Inner, 0.0f, 1.57f, "%.2f")) {
+                    if (ImGui::SliderFloat("Inner Cone", &Inner, 0.0f, 1.57f, "%.2f"))
                         SpotLight->SetInnerConeAngle(Inner);
-                    }
 
                     float Outer = SpotLight->GetOuterConeAngle();
-                    if (ImGui::SliderFloat("Outer Cone", &Outer, 0.0f, 1.57f, "%.2f")) {
+                    if (ImGui::SliderFloat("Outer Cone", &Outer, 0.0f, 1.57f, "%.2f"))
                         SpotLight->SetOuterConeAngle(Outer);
-                    }
+                }
+
+                // ✅ Directional Light: 별도 속성 없음 (ForwardVector로만 방향 설정)
+                if (dynamic_cast<UDirectionalLightComponent*>(lightObj))
+                {
+                    ImGui::Text("Direction is driven by rotation.");
+                }
+
+                // ✅ Ambient Light: 속성 없음 (Intensity + Color로 충분)
+                if (dynamic_cast<UAmbientLightComponent*>(lightObj))
+                {
+                    ImGui::Text("Ambient light has no direction or range.");
                 }
 
                 ImGui::TreePop();
             }
+
 
             ImGui::PopStyleColor();
         }

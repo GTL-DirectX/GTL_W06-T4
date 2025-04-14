@@ -183,26 +183,26 @@ void AActor::UninitializeComponents()
 
 bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
 {
-    if (NewRootComponent == nullptr || NewRootComponent->GetOwner() == this)
-    {
-        if (RootComponent != NewRootComponent)
-        {
-            USceneComponent* OldRootComponent = RootComponent;
-            RootComponent = NewRootComponent;
+    if (NewRootComponent == nullptr || NewRootComponent->GetOwner() != this)return false;
 
-            if (OldRootComponent)
-            {
-                OldRootComponent->SetupAttachment(RootComponent);
-            }
+    if (RootComponent != NewRootComponent)
+    {
+        USceneComponent* OldRootComponent = RootComponent;
+        RootComponent = NewRootComponent;
+
+        if (OldRootComponent)
+        {
+            OldRootComponent->SetupAttachment(RootComponent);
         }
-        return true;
     }
-    return false;
+    return true;
+
+
 }
 
 FVector AActor::GetActorLocation() const
 {
-    return RootComponent ? RootComponent->GetRelativeLocation() : FVector(FVector::ZeroVector); 
+    return RootComponent ? RootComponent->GetRelativeLocation() : FVector(FVector::ZeroVector);
 }
 
 FRotator AActor::GetActorRotation() const
@@ -212,14 +212,14 @@ FRotator AActor::GetActorRotation() const
 
 FVector AActor::GetActorScale() const
 {
-    return RootComponent ? RootComponent->GetRelativeScale3D() : FVector(FVector::OneVector); 
+    return RootComponent ? RootComponent->GetRelativeScale3D() : FVector(FVector::OneVector);
 }
 
 bool AActor::SetActorLocation(const FVector& NewLocation)
 {
     if (RootComponent)
     {
-       RootComponent->SetRelativeLocation(NewLocation);
+        RootComponent->SetRelativeLocation(NewLocation);
         return true;
     }
     return false;
