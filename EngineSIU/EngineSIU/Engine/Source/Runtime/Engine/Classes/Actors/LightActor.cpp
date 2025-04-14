@@ -9,7 +9,6 @@ ALight::ALight()
 {
     BillboardComponent = AddComponent<UBillboardComponent>();
     BillboardComponent->SetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
-    SetRootComponent(BillboardComponent);
 
     LightType = ELightType::Point; // 기본 타입은 .cpp에서 설정
     SetLightType(LightType);       // 실제 LightComponent 생성
@@ -49,7 +48,7 @@ void ALight::SetLightType(ELightType InType)
 
     if (LightComponent)
     {
-        LightComponent->AttachToComponent(RootComponent);
+        //LightComponent->AttachToComponent(RootComponent);
         LightComponent->SetLight(FLight(FLinearColor::White, FLinearColor::White, 1000.f));
     }
 }

@@ -59,9 +59,9 @@ void FBillboardRenderPass::PrepareRender()
 
 void FBillboardRenderPass::PrepareTextureShader() const
 {
-    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"VertexBillboardShader"), nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"PixelBillboardShader"), nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"VertexBillboardShader"));
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"BillboardVertexShader"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"BillboardPixelShader"), nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"BillboardVertexShader"));
 
     //BufferManager->BindConstantBuffer(TEXT("FPerObjectConstantBuffer"), 0, EShaderStage::Vertex);
 }
