@@ -132,10 +132,10 @@ UActorComponent* AActor::AddComponent(UClass* InClass)
             {
                 RootComponent = NewSceneComp;
             }
-             else
-             {
-                 NewSceneComp->SetupAttachment(RootComponent);
-             }
+            else
+            {
+                NewSceneComp->SetupAttachment(RootComponent);
+            }
         }
 
         // TODO: RegisterComponent() 생기면 제거

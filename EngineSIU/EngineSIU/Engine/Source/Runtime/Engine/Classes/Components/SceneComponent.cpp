@@ -203,3 +203,13 @@ void USceneComponent::SetupAttachment(USceneComponent* InParent)
         InParent->AttachChildren.AddUnique(this);
     }
 }
+
+void USceneComponent::DestroyComponent()
+{
+    if (AttachParent)
+    {
+        AttachParent->AttachChildren.Remove(this);
+        AttachParent = nullptr;
+    }
+    Super::DestroyComponent();
+}

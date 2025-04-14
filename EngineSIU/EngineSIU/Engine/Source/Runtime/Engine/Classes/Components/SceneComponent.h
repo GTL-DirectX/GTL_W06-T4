@@ -49,6 +49,7 @@ public:
     FMatrix GetWorldMatrix() const;
     
     void SetupAttachment(USceneComponent* InParent);
+    virtual void DestroyComponent() override;
 
 protected:
     /** 부모 컴포넌트로부터 상대적인 위치 */
