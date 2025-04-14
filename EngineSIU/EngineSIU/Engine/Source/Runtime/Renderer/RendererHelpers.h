@@ -13,7 +13,8 @@ namespace RendererHelpers {
     }
 }
 
-namespace MaterialUtils {
+namespace MaterialUtils
+{
     inline void UpdateMaterial(FDXDBufferManager* BufferManager, FGraphicsDevice* Graphics, const FObjMaterialInfo& MaterialInfo) {
         FMaterialConstants data;
         data.DiffuseColor = MaterialInfo.Diffuse;
@@ -33,17 +34,35 @@ namespace MaterialUtils {
             // TODO : Sampler state 분리
             Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
         }
+        else {
+            ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+            ID3D11SamplerState* nullSampler[1] = { nullptr };
+            Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Diffuse, 1, nullSRV);
+            Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
+        }
 
         if (MaterialInfo.TextureSlotMask & MaterialTextureFlags::Ambient) {
             std::shared_ptr<FTexture> texture = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.AmbientTexturePath);
             Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Ambient, 1, &texture->TextureSRV);
             Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
         }
-        
+        else {
+            ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+            ID3D11SamplerState* nullSampler[1] = { nullptr };
+            Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Ambient, 1, nullSRV);
+            Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
+        }
+
         if (MaterialInfo.TextureSlotMask & MaterialTextureFlags::Specular) {
             std::shared_ptr<FTexture> texture = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.SpecularTexturePath);
             Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Specular, 1, &texture->TextureSRV);
             Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
+        }
+        else {
+            ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+            ID3D11SamplerState* nullSampler[1] = { nullptr };
+            Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Specular, 1, nullSRV);
+            Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
         }
 
         if (MaterialInfo.TextureSlotMask & MaterialTextureFlags::Bump) {
@@ -51,18 +70,23 @@ namespace MaterialUtils {
             Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Bump, 1, &texture->TextureSRV);
             Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
         }
+        else {
+            ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+            ID3D11SamplerState* nullSampler[1] = { nullptr };
+            Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Bump, 1, nullSRV);
+            Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
+        }
 
         if (MaterialInfo.TextureSlotMask & MaterialTextureFlags::Alpha) {
             std::shared_ptr<FTexture> texture = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.AlphaTexturePath);
             Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Alpha, 1, &texture->TextureSRV);
             Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
         }
-
-        /*else {
+        else {
             ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
             ID3D11SamplerState* nullSampler[1] = { nullptr };
-            Graphics->DeviceContext->PSSetShaderResources(0, 1, nullSRV);
+            Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Alpha, 1, nullSRV);
             Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
-        }*/
+        }
     }
 }

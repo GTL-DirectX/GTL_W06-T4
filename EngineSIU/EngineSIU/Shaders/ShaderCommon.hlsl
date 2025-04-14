@@ -31,6 +31,7 @@ struct FMaterial
     float SpecularScalar;
     float3 EmissiveColor;
     float MaterialPad0;
+    uint TextureSlotMask;
 };
 cbuffer MaterialConstants : REG(CB_SLOT_Material)
 {
