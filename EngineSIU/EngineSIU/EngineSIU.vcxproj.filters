@@ -756,7 +756,7 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\HeightFogActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\FogRenderPass.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\LightActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\LightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Matrix.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ProjectileMovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Cube.cpp">
@@ -783,6 +783,11 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponentBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\LightRenderPass.cpp" />
     <ClCompile Include="Shaders\UberLit.hlsl" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\LightManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\DirectionalLight.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\AmbientLight.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\PointLight.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\SpotLight.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -800,18 +805,6 @@
     <FxCompile Include="Shaders\GizmoVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\PixelBillBoardShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\StaticMeshPixelShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\StaticMeshVertexShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\VertexBillBoardShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\ShaderW0.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -824,6 +817,8 @@
     <FxCompile Include="Shaders\FogPixelShader.hlsl" />
     <FxCompile Include="Shaders\FogVertexShader.hlsl" />
     <FxCompile Include="Shaders\FogQuadPixelShader.hlsl" />
+    <FxCompile Include="Shaders\BillboardPixelShader.hlsl" />
+    <FxCompile Include="Shaders\BillboardVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\FireballActor.h">
@@ -832,7 +827,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\HeightFogActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\FogRenderPass.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\LightActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\LightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ProjectileMovementComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Cube.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Actors</Filter>
@@ -856,5 +851,15 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponentBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\LightRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\EngineBaseTypes.cpp" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Material\MaterialTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\LightManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\LightType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\DirectionalLight.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\AmbientLight.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\PointLight.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\SpotLight.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\ShaderCommon.hlsl" />
   </ItemGroup>
 </Project>

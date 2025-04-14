@@ -170,6 +170,8 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\AmbientLight.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\DirectionalLight.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Property.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Quat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Rotator.cpp" />
@@ -266,14 +268,18 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\LineRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Level.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\FireballActor.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\LightActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\LightActor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ProjectileMovementComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\PointLight.cpp" />
     <ClCompile Include="Shaders\UberLit.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\SpotLight.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\AmbientLight.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\DirectionalLight.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Property.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\CoreMiscDefines.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Rotator.h" />
@@ -417,8 +423,10 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\UpdateLightBufferPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\LineRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Level.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\LightActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\LightActor.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ProjectileMovementComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\PointLight.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Light\SpotLight.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderCommon.hlsl" />
