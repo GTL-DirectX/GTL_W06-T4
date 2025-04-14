@@ -456,12 +456,12 @@ void UPrimitiveDrawBatch::PrepareLineResources() const
 {
     if (Graphics && Graphics->DeviceContext)
     {
-        // Grid 상수 버퍼를 Vertex와 Pixel 셰이더에 바인딩 (register b1)
-        Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &GridConstantBuffer);
-        Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &GridConstantBuffer);
+        // Grid 상수 버퍼를 Vertex와 Pixel 셰이더에 바인딩 (register b0)
+        Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &GridConstantBuffer);
+        Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &GridConstantBuffer);
 
-        // 선 프리미티브 버퍼를 Vertex 셰이더에 바인딩 (register b3)
-        Graphics->DeviceContext->VSSetConstantBuffers(3, 1, &LinePrimitiveBuffer);
+        // 선 프리미티브 버퍼를 Vertex 셰이더에 바인딩 (register b1)
+        Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &LinePrimitiveBuffer);
 
         // BoundingBox, Cone, OBB 데이터 SRV를 각각 등록 (registers 2, 3, 4)
         Graphics->DeviceContext->VSSetShaderResources(2, 1, &BoundingBoxSRV);
