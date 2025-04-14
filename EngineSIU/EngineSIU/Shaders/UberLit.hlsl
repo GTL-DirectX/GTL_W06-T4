@@ -222,6 +222,7 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
     // 2) 머티리얼 디퓨즈
     float3 matDiffuse = Material.DiffuseColor.rgb;
     // 3) 라이트 계산
+    float3 normal = Input.normal;
 
     bool hasTexture = any(albedo != float3(0, 0, 0));
 
@@ -259,31 +260,27 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
     float3 baseColor = hasTexture ? albedo : matDiffuse;
     output.color = float4(baseColor, 1);
 #endif
-    float3 lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal));
+    // 아래 내용을 통해 Normalmapping 사용
+    if (Material.TextureSlotMask & (1 << 3))
+    {
+        float3x3 MInverse3x3 = float3x3(
+            MInverseTranspose._11, MInverseTranspose._12, MInverseTranspose._13,
+            MInverseTranspose._21, MInverseTranspose._22, MInverseTranspose._23,
+            MInverseTranspose._31, MInverseTranspose._32, MInverseTranspose._33
+        );
+        float3 normalMap = BumpTexture.Sample(Sampler, Input.texcoord).rgb;
+        
+        normalMap = normalMap * 2.0f - 1.0f;
+
+        normal = normalize(mul(mul(normalMap, Input.tbn), MInverse3x3));
+    }
+    
+    float3 lighting = CalculateLambertLighting(Input.worldPos, normalize(normal));
     lighting = saturate(lighting);
     baseColor = any(DiffuseTexture.Sample(Sampler, Input.texcoord).rgb != float3(0, 0, 0))
                        ? DiffuseTexture.Sample(Sampler, Input.texcoord).rgb
                        : Material.DiffuseColor;
     output.color = float4(baseColor * (lighting + Material.EmissiveColor), 1.0f);
-    
-    // 아래 내용을 통해 Normalmapping
-    //float3 normal = Input.normal;
-    
-    //float3x3 MInverse3x3 = float3x3(
-    //    MInverseTranspose._11, MInverseTranspose._12, MInverseTranspose._13,
-    //    MInverseTranspose._21, MInverseTranspose._22, MInverseTranspose._23,
-    //    MInverseTranspose._31, MInverseTranspose._32, MInverseTranspose._33
-    //);
-    
-    //if (Material.TextureSlotMask & (1 << 3))
-    //{
-    //    float3 normalMap = BumpTexture.Sample(Sampler, Input.texcoord).rgb;
-        
-    //    normalMap = normalMap * 2.0f - 1.0f;
-
-    //    normal = normalize(mul(mul(normalMap, Input.tbn), MInverse3x3));
-    //}
-    
 
     // 아래 내용은 Normal을 색상으로 표현 시 사용
     // float3 normalColor = (normal + 1.0f) * 0.5f;
