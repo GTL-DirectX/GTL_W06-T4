@@ -11,17 +11,7 @@ public:
 
     virtual ELightType GetLightType() const override { return ELightType::Ambient; }
 
-    virtual void UploadLightInfo(void* OutInfo) const override
-    {
-        FAmbientLightInfo* Info = reinterpret_cast<FAmbientLightInfo*>(OutInfo);
-        Info->Color = GetDiffuseColor().ToFVector();
-        Info->Intensity = GetIntensity();
-    }
+    virtual void UploadLightInfo(void* OutInfo) const override;
 
-    virtual UObject* Duplicate(UObject* InOuter) override
-    {
-        ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
-        //NewComponent->SetLight(GetLight());
-        return NewComponent;
-    }
+    virtual UObject* Duplicate(UObject* InOuter) override;
 };
