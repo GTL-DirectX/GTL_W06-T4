@@ -6,11 +6,13 @@
 #include "StaticMeshRenderPass.h"
 #include "BillboardRenderPass.h"
 #include "GizmoRenderPass.h"
-#include "UpdateLightBufferPass.h"
+//#include "UpdateLightBufferPass.h"
 #include "LineRenderPass.h"
 #include "DepthBufferDebugPass.h"
 #include "FogRenderPass.h"
 #include <UObject/UObjectIterator.h>
+
+#include "LightType.h"
 #include "GameFrameWork/Actor.h"
 
 //------------------------------------------------------------------------------
@@ -25,19 +27,21 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     StaticMeshRenderPass = new FStaticMeshRenderPass();
     BillboardRenderPass = new FBillboardRenderPass();
     GizmoRenderPass = new FGizmoRenderPass();
-    UpdateLightBufferPass = new FUpdateLightBufferPass();
+    //UpdateLightBufferPass = new FUpdateLightBufferPass();
     LineRenderPass = new FLineRenderPass();
     DepthBufferDebugPass = new FDepthBufferDebugPass();
     FogRenderPass = new FFogRenderPass();
+    LightManager = new FLightManager();
 
     StaticMeshRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
+    StaticMeshRenderPass->SetLightManager(LightManager);
     BillboardRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     GizmoRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
-    UpdateLightBufferPass->Initialize(BufferManager, Graphics, ShaderManager);
+    //UpdateLightBufferPass->Initialize(BufferManager, Graphics, ShaderManager);
     LineRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     DepthBufferDebugPass->Initialize(BufferManager, Graphics, ShaderManager);
     FogRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
-
+    LightManager->Initialize(BufferManager);
     CreateConstantBuffers();
 }
 
@@ -49,7 +53,7 @@ void FRenderer::Release()
 void FRenderer::ChangeViewMode(EViewModeIndex evi)
 {
     StaticMeshRenderPass->ChangeViewMode(evi);
-    if (evi == EViewModeIndex::VMI_SceneDepth)
+    if (evi == EViewModeIndex::SceneDepth)
         IsSceneDepth = true;
     else
         IsSceneDepth = false;
@@ -95,13 +99,23 @@ void FRenderer::ReleaseConstantBuffer()
 {
     BufferManager->ReleaseConstantBuffer();
 }
+void FRenderer::BindGlobalConstantBuffers()
+{
+    TArray<FString> Keys = {
+        TEXT("FPerObjectConstantBuffer"),
+        TEXT("FCameraConstantBuffer"),
+        TEXT("FMaterialConstants")
+    };
+    BufferManager->BindConstantBuffers(Keys, /*StartSlot=*/10, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffers(Keys, /*StartSlot=*/10, EShaderStage::Pixel);
+}
 
 void FRenderer::PrepareRender()
 {
     StaticMeshRenderPass->PrepareRender();
     GizmoRenderPass->PrepareRender();
     BillboardRenderPass->PrepareRender();
-    UpdateLightBufferPass->PrepareRender();
+    //UpdateLightBufferPass->PrepareRender();
     FogRenderPass->PrepareRender();
 }
 
@@ -110,7 +124,7 @@ void FRenderer::ClearRenderArr()
     StaticMeshRenderPass->ClearRenderArr();
     BillboardRenderPass->ClearRenderArr();
     GizmoRenderPass->ClearRenderArr();
-    UpdateLightBufferPass->ClearRenderArr();
+    //UpdateLightBufferPass->ClearRenderArr();
     FogRenderPass->ClearRenderArr();
 }
 
@@ -121,9 +135,11 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
 
     ChangeViewMode(ActiveViewport->GetViewMode());
+    BindGlobalConstantBuffers();
+    LightManager->UpdateLightBuffer();
 
     StaticMeshRenderPass->Render(ActiveViewport);
-    UpdateLightBufferPass->Render(ActiveViewport);
+    //UpdateLightBufferPass->Render(ActiveViewport);
     BillboardRenderPass->Render(ActiveViewport);
     
 

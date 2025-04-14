@@ -64,9 +64,11 @@ void FLineRenderPass::PrepareLineShader() const
     Graphics->DeviceContext->VSSetShader(VertexLineShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelLineShader, nullptr, 0);
 
+    /*
     BufferManager->BindConstantBuffer(TEXT("FPerObjectConstantBuffer"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FPerObjectConstantBuffer"), 0, EShaderStage::Pixel);
     BufferManager->BindConstantBuffer(TEXT("FCameraConstantBuffer"), 2, EShaderStage::Pixel);
+    */
 
     FEngineLoop::PrimitiveDrawBatch.PrepareLineResources();
 }
@@ -91,13 +93,16 @@ void FLineRenderPass::DrawLineBatch(const FLinePrimitiveBatchArgs& BatchArgs) co
 void FLineRenderPass::ProcessLineRendering(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     PrepareLineShader();
-
+    FMatrix Model = FMatrix::Identity;
+    FMatrix View = Viewport->GetViewMatrix();
+    FMatrix Projection = Viewport->GetProjectionMatrix();
     // 상수 버퍼 업데이트: Identity 모델, 기본 색상 등
-    FMatrix MVP = RendererHelpers::CalculateMVP(FMatrix::Identity, Viewport->GetViewMatrix(), Viewport->GetProjectionMatrix());
-    FMatrix NormalMatrix = RendererHelpers::CalculateNormalMatrix(FMatrix::Identity);
-    FPerObjectConstantBuffer Data(MVP, NormalMatrix, FVector4(0, 0, 0, 0), false);
-    FCameraConstantBuffer CameraData(Viewport->View, Viewport->Projection, Viewport->ViewTransformPerspective.GetLocation());
+    /*FMatrix MVP = RendererHelpers::CalculateMVP(FMatrix::Identity, Viewport->GetViewMatrix(), Viewport->GetProjectionMatrix());
+    FMatrix NormalMatrix = RendererHelpers::CalculateNormalMatrix(FMatrix::Identity);*/
+    FMatrix MInverseTranspose = RendererHelpers::CalculateNormalMatrix(Model); // [변경됨]
+    FPerObjectConstantBuffer Data(Model, View, Projection, MInverseTranspose);
     BufferManager->UpdateConstantBuffer(TEXT("FPerObjectConstantBuffer"), Data);
+    FCameraConstantBuffer CameraData(Viewport->ViewTransformPerspective.GetLocation());
 
     BufferManager->UpdateConstantBuffer(TEXT("FCameraConstantBuffer"), CameraData);
     FLinePrimitiveBatchArgs BatchArgs;

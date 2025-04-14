@@ -100,17 +100,19 @@ void FGizmoRenderPass::PrepareRenderState() const
     Graphics->DeviceContext->IASetInputLayout(InputLayout);
 
     // 상수 버퍼 바인딩 예시
-    ID3D11Buffer* PerObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FPerObjectConstantBuffer"));
+    /*ID3D11Buffer* PerObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FPerObjectConstantBuffer"));
     ID3D11Buffer* CameraConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FCameraConstantBuffer"));
     Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &PerObjectBuffer);
-    Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &CameraConstantBuffer);
+    Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &CameraConstantBuffer);*/
 
-    TArray<FString> PSBufferKeys = {
+    /*TArray<FString> PSBufferKeys = {
                                   TEXT("FPerObjectConstantBuffer"),
                                    TEXT("FMaterialConstants"),
                                   TEXT("FLitUnlitConstants")
+    };*/
+    TArray<FString> PSBufferKeys = {
+                                  TEXT("FLitUnlitConstants")
     };
-
     BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
 }
 
@@ -194,6 +196,8 @@ void FGizmoRenderPass::RenderGizmoComponent(UGizmoBaseComponent* GizmoComp, cons
         return;
     // 모델 행렬.
     FMatrix Model = GizmoComp->GetWorldMatrix();
+    FMatrix View = Viewport->GetViewMatrix();
+    FMatrix Projection = Viewport->GetProjectionMatrix();
 
     FVector4 UUIDColor = GizmoComp->EncodeUUID() / 255.0f;
 
@@ -201,9 +205,10 @@ void FGizmoRenderPass::RenderGizmoComponent(UGizmoBaseComponent* GizmoComp, cons
 
     FMatrix NormalMatrix = RendererHelpers::CalculateNormalMatrix(Model);
 
-    FPerObjectConstantBuffer Data(Model, NormalMatrix, UUIDColor, Selected);
+    FMatrix MInverseTranspose = RendererHelpers::CalculateNormalMatrix(Model); // [변경됨]
+    FPerObjectConstantBuffer Data(Model, View, Projection, MInverseTranspose);
 
-    FCameraConstantBuffer CameraData(Viewport->View, Viewport->Projection);
+    FCameraConstantBuffer CameraData(Viewport->ViewTransformPerspective.GetLocation());
 
     BufferManager->UpdateConstantBuffer(TEXT("FPerObjectConstantBuffer"), Data);
     BufferManager->UpdateConstantBuffer(TEXT("FCameraConstantBuffer"), CameraData);

@@ -1,4 +1,5 @@
 // MatrixBuffer: 변환 행렬 관리
+/*
 cbuffer MatrixConstants : register(b0)
 {
     row_major float4x4 Model;
@@ -71,3 +72,4 @@ PS_INPUT mainVS(VS_INPUT input)
     
     return output;
 }
+*/

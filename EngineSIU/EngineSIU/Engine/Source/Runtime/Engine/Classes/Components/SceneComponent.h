@@ -16,7 +16,7 @@ public:
     virtual void TickComponent(float DeltaTime) override;
     virtual int CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance);
     
-    virtual FVector GetForwardVector();
+    virtual FVector GetForwardVector() const;
     virtual FVector GetRightVector();
     virtual FVector GetUpVector();
     

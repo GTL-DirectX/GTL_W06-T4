@@ -31,6 +31,7 @@ FStaticMeshRenderPass::FStaticMeshRenderPass()
     , BufferManager(nullptr)
     , Graphics(nullptr)
     , ShaderManager(nullptr)
+    ,LightManager(nullptr)
 {
 }
 
@@ -61,8 +62,16 @@ void FStaticMeshRenderPass::CreateShader()
     };
 
     Stride = sizeof(FStaticMeshVertex);
+    ShaderManager->AddVertexShaderAndInputLayout(
+        L"UberLitVS", L"Shaders/UberLit.hlsl", "Uber_VS", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc));
 
-    HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"StaticMeshVertexShader", L"Shaders/StaticMeshVertexShader.hlsl", "mainVS", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc));
+    ShaderManager->AddPixelShader(
+        L"UberLitPS", L"Shaders/UberLit.hlsl", "Uber_PS");
+
+    VertexShader = ShaderManager->GetVertexShaderByKey(L"UberLitVS");
+    PixelShader = ShaderManager->GetPixelShaderByKey(L"UberLitPS");
+    InputLayout = ShaderManager->GetInputLayoutByKey(L"UberLitVS");
+    /*HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"StaticMeshVertexShader", L"Shaders/StaticMeshVertexShader.hlsl", "mainVS", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc));
 
     hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS");
 
@@ -70,7 +79,7 @@ void FStaticMeshRenderPass::CreateShader()
 
     PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
 
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
+    InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");*/
 
 }
 void FStaticMeshRenderPass::ReleaseShader()
@@ -84,11 +93,13 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi) const
 {
     switch (evi)
     {
-    case EViewModeIndex::VMI_Lit:
+    case EViewModeIndex::Lit_Gouraud:
+    case EViewModeIndex::Lit_Lambert:
+    case EViewModeIndex::Lit_Phong:
         UpdateLitUnlitConstant(1);
         break;
-    case EViewModeIndex::VMI_Wireframe:
-    case EViewModeIndex::VMI_Unlit:
+    case EViewModeIndex::Wireframe:
+    case EViewModeIndex::Unlit:
         UpdateLitUnlitConstant(0);
         break;
     }
@@ -100,7 +111,6 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     BufferManager = InBufferManager;
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
-
     CreateShader();
 }
 
@@ -122,27 +132,35 @@ void FStaticMeshRenderPass::PrepareRenderState() const
     Graphics->DeviceContext->IASetInputLayout(InputLayout);
 
     // 상수 버퍼 바인딩 예시
-    ID3D11Buffer* PerObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FPerObjectConstantBuffer"));
+    /*ID3D11Buffer* PerObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FPerObjectConstantBuffer"));
     ID3D11Buffer* CameraConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FCameraConstantBuffer"));
     Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &PerObjectBuffer);
-    Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &CameraConstantBuffer);
+    Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &PerObjectBuffer);
+    Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &CameraConstantBuffer);*/
 
-    TArray<FString> PSBufferKeys = {
+    /*TArray<FString> PSBufferKeys = {
                                   TEXT("FCameraConstantBuffer"),
                                   TEXT("FLightBuffer"),
                                   TEXT("FMaterialConstants"),
                                   TEXT("FLitUnlitConstants"),
                                   TEXT("FSubMeshConstants"),
                                   TEXT("FTextureConstants")
+    };*/
+    TArray<FString> PSBufferKeys = {
+                              TEXT("FLightBuffer"),
+                              TEXT("FLitUnlitConstants"),
+                              TEXT("FSubMeshConstants"),
+                              TEXT("FTextureConstants")
     };
-
-    BufferManager->BindConstantBuffers(PSBufferKeys, 1, EShaderStage::Pixel);
+    BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
 }
 
 void FStaticMeshRenderPass::UpdatePerObjectConstant(const FMatrix& Model, const FMatrix& View, const FMatrix& Projection, const FVector4& UUIDColor, bool Selected) const
 {
     FMatrix NormalMatrix = RendererHelpers::CalculateNormalMatrix(Model);
-    FPerObjectConstantBuffer Data(Model, NormalMatrix, UUIDColor, Selected);
+    //FPerObjectConstantBuffer Data(Model, NormalMatrix, UUIDColor, Selected);
+    FMatrix MInverseTranspose = RendererHelpers::CalculateNormalMatrix(Model); // [변경됨]
+    FPerObjectConstantBuffer Data(Model, View, Projection, MInverseTranspose);
     BufferManager->UpdateConstantBuffer(TEXT("FPerObjectConstantBuffer"), Data);
    
 }
@@ -219,7 +237,8 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
         bool Selected = (Engine && Engine->GetSelectedActor() == Comp->GetOwner());
 
         UpdatePerObjectConstant(Model, Viewport->GetViewMatrix(), Viewport->GetProjectionMatrix(), UUIDColor, Selected);
-        FCameraConstantBuffer CameraData(Viewport->GetViewMatrix(), Viewport->GetProjectionMatrix(), Viewport->ViewTransformPerspective.GetLocation(), 0);
+        //FCameraConstantBuffer CameraData(Viewport->GetViewMatrix(), Viewport->GetProjectionMatrix(), Viewport->ViewTransformPerspective.GetLocation(), 0);
+        FCameraConstantBuffer CameraData(Viewport->ViewTransformPerspective.GetLocation(), 0);
         BufferManager->UpdateConstantBuffer(TEXT("FCameraConstantBuffer"), CameraData);
 
         OBJ::FStaticMeshRenderData* RenderData = Comp->GetStaticMesh()->GetRenderData();

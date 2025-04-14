@@ -1,8 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include "Components/SceneComponent.h"
 
 #include "Math/Color.h"
+#include "Renderer/LightType.h"
+#include "UObject/Casts.h"
 
 class ULightComponentBase : public USceneComponent
 {
@@ -12,13 +14,26 @@ public:
     ULightComponentBase();
 
 public:
-    float GetIntensity();
-    FColor GetLightColor();
-    bool IsVisible() const;
-    
+    virtual UObject* Duplicate(UObject* InOuter)override;
+    const FLight& GetLight() const { return LightData; }
+    void SetLight(const FLight& InLight)
+    {
+        LightData = InLight;/*
+        if (LightData.DiffuseColor == FLinearColor::Black)
+        {
+            LightData.DiffuseColor = FLinearColor::White;
+        }*/
+    }
+    FLinearColor GetSpecularColor() const { return LightData.SpecularColor; }
+    void SetSpecularColor(const FLinearColor& InColor) { LightData.SpecularColor = InColor; }
+    FLinearColor GetDiffuseColor() const { return LightData.DiffuseColor; }
+    void SetDiffuseColor(const FLinearColor& InColor) { LightData.DiffuseColor = InColor; }
+
+    float GetIntensity() const { return LightData.Intensity; }
+    void SetIntensity(float InIntensity) { LightData.Intensity = InIntensity; }
+    //bool IsVisible() const { return LightData.bVisible; }
+
 protected:
-    float Intensity;
-    FColor LightColor;
-    bool bVisible;
-    
+    FLight LightData;
+
 };

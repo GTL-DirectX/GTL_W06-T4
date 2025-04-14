@@ -1,7 +1,7 @@
 Texture2D SceneDepth : register(t0);
 SamplerState Sampler : register(s0);
 
-cbuffer ConstantBuffer : register(b1)
+/*cbuffer ConstantBuffer : register(b1)
 {
     row_major float4x4 InvViewProj;
     float4 FogColor;
@@ -14,7 +14,7 @@ cbuffer ConstantBuffer : register(b1)
     float3 FogPosition;
     float CameraNear;
     float CameraFar;
-};
+};*/
 
 cbuffer ScreenConstants : register(b0)
 {
@@ -32,7 +32,8 @@ struct PS_INPUT
 
 float4 mainPS(PS_INPUT input) : SV_Target
 {
-    float2 TextureUV = input.UV * UVScale + UVOffset;
+    return float4(1, 0, 0, 1);
+    /*float2 TextureUV = input.UV * UVScale + UVOffset;
     float2 UV = input.UV;
     
     //픽셀 월드 위치 계산
@@ -81,5 +82,5 @@ float4 mainPS(PS_INPUT input) : SV_Target
         TotalFogFactor = 0;
     
     float4 FinalColor = float4(FogColor.rgb * TotalFogFactor, TotalFogFactor);
-    return FinalColor;
+    return FinalColor;*/
 }

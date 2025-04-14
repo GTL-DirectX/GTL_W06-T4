@@ -1,20 +1,15 @@
 #pragma once
 #include "IRenderPass.h"
 #include "EngineBaseTypes.h"
-#include "Container/Set.h"
 
 #include "Define.h"
 
+class FLightManager;
 class FDXDShaderManager;
-
 class UWorld;
-
 class UMaterial;
-
 class FEditorViewportClient;
-
 class UStaticMeshComponent;
-
 struct FStaticMaterial;
 
 class FStaticMeshRenderPass : public IRenderPass
@@ -24,13 +19,15 @@ public:
     
     ~FStaticMeshRenderPass();
     
-    virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) override;
+    virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     
     virtual void PrepareRender() override;
 
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
     virtual void ClearRenderArr() override;
+
+    void SetLightManager(FLightManager* InLightManager) { LightManager = InLightManager; };
 
     void PrepareRenderState() const;
     
@@ -65,4 +62,6 @@ private:
     FGraphicsDevice* Graphics;
     
     FDXDShaderManager* ShaderManager;
+
+    FLightManager* LightManager;
 };

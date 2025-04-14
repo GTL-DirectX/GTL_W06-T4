@@ -2,10 +2,16 @@
 #include "LightComponentBase.h"
 #include "Define.h"
 class UBillboardComponent;
-
+enum class ELightType : uint8
+{
+    Ambient,
+    Directional,
+    Point,
+    Spot
+};
 class ULightComponent : public ULightComponentBase
 {
-    DECLARE_CLASS(ULightComponent, ULightComponentBase)
+    DECLARE_ABSTRACT_CLASS(ULightComponent, ULightComponentBase)
 
 public:
     ULightComponent();
@@ -15,28 +21,16 @@ public:
     virtual void TickComponent(float DeltaTime) override;
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
     void InitializeLight();
-    
-    void SetDiffuseColor(FLinearColor NewColor);
-    void SetSpecularColor(FLinearColor NewColor);
-    void SetAttenuation(float Attenuation);
-    void SetAttenuationRadius(float AttenuationRadius);
-    void SetIntensity(float Intensity);
-    void SetFalloff(float fallOff);
 
-    FLinearColor GetDiffuseColor();
-    FLinearColor GetSpecularColor();
-    float GetAttenuation();
-    float GetAttenuationRadius();
-    float GetFalloff();
-    FLight GetLightInfo() const { return Light; };
+    virtual ELightType GetLightType() const=0;
+    // GPU 업로드용 LightInfo를 추출 (각 하위 클래스에서 오버라이드)
+    virtual void UploadLightInfo(void* OutInfo)const=0;
+    bool IsVisible() const { return bVisible; }
 protected:
 
     FBoundingBox AABB;
-    FLight Light;
+    bool bVisible = true;
 
 public:
     FBoundingBox GetBoundingBox() const {return AABB;}
-    
-    float GetIntensity() const {return Light.Intensity;}
-    
 };

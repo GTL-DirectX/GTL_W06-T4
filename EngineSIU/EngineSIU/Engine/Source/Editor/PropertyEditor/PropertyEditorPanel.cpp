@@ -15,6 +15,8 @@
 #include "Engine/Engine.h"
 #include "Components/HeightFogComponent.h"
 #include "Components/ProjectileMovementComponent.h"
+#include "Components/Light/AmbientLightComponent.h"
+#include "Components/Light/DirectionalLightComponent.h"
 
 #include "Engine/AssetManager.h"
 #include "UObject/UObjectIterator.h"
@@ -110,10 +112,7 @@ void PropertyEditorPanel::Render()
 
             if (ImGui::TreeNodeEx("Light Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
             {
-                /*  DrawColorProperty("Ambient Color",
-                      [&]() { return lightObj->GetAmbientColor(); },
-                      [&](FVector4 c) { lightObj->SetAmbientColor(c); });
-                  */
+                // ✅ 공통 속성: 색상 + 강도
                 DrawColorProperty("Base Color",
                     [&]() { return lightObj->GetDiffuseColor(); },
                     [&](FLinearColor c) { lightObj->SetDiffuseColor(c); });
@@ -126,27 +125,53 @@ void PropertyEditorPanel::Render()
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 10000.0f, "%1.f"))
                     lightObj->SetIntensity(Intensity);
 
-                 /*  
-                float falloff = lightObj->GetFalloff();
-                if (ImGui::SliderFloat("Falloff", &falloff, 0.1f, 10.0f, "%.2f")) {
-                    lightObj->SetFalloff(falloff);
+                // ✅ Point Light 전용
+                if (auto* PointLight = dynamic_cast<UPointLightComponent*>(lightObj))
+                {
+                    float Falloff = PointLight->GetFalloff();
+                    if (ImGui::SliderFloat("Falloff", &Falloff, 0.1f, 10.0f, "%.2f"))
+                        PointLight->SetFalloff(Falloff);
+
+                    float Radius = PointLight->GetAttenuationRadius();
+                    if (ImGui::SliderFloat("Attenuation Radius", &Radius, 0.01f, 10000.f, "%.1f"))
+                        PointLight->SetAttenuationRadius(Radius);
                 }
 
-                TODO : For SpotLight
-                */
+                // ✅ Spot Light 전용
+                if (auto* SpotLight = dynamic_cast<USpotLightComponent*>(lightObj))
+                {
+                    float Falloff = SpotLight->GetFalloff();
+                    if (ImGui::SliderFloat("Falloff", &Falloff, 0.1f, 10.0f, "%.2f"))
+                        SpotLight->SetFalloff(Falloff);
 
-                float attenuation = lightObj->GetAttenuation();
-                if (ImGui::SliderFloat("Attenuation", &attenuation, 0.01f, 10000.f, "%.1f")) {
-                    lightObj->SetAttenuation(attenuation);
+                    float Radius = SpotLight->GetAttenuationRadius();
+                    if (ImGui::SliderFloat("Attenuation Radius", &Radius, 0.01f, 10000.f, "%.1f"))
+                        SpotLight->SetAttenuationRadius(Radius);
+
+                    float Inner = SpotLight->GetInnerConeAngle();
+                    if (ImGui::SliderFloat("Inner Cone", &Inner, 0.0f, 1.57f, "%.2f"))
+                        SpotLight->SetInnerConeAngle(Inner);
+
+                    float Outer = SpotLight->GetOuterConeAngle();
+                    if (ImGui::SliderFloat("Outer Cone", &Outer, 0.0f, 1.57f, "%.2f"))
+                        SpotLight->SetOuterConeAngle(Outer);
                 }
 
-                float AttenuationRadius = lightObj->GetAttenuationRadius();
-                if (ImGui::SliderFloat("Attenuation Radius", &AttenuationRadius, 0.01f, 10000.f, "%.1f")) {
-                    lightObj->SetAttenuationRadius(AttenuationRadius);
+                // ✅ Directional Light: 별도 속성 없음 (ForwardVector로만 방향 설정)
+                if (dynamic_cast<UDirectionalLightComponent*>(lightObj))
+                {
+                    ImGui::Text("Direction is driven by rotation.");
+                }
+
+                // ✅ Ambient Light: 속성 없음 (Intensity + Color로 충분)
+                if (dynamic_cast<UAmbientLightComponent*>(lightObj))
+                {
+                    ImGui::Text("Ambient light has no direction or range.");
                 }
 
                 ImGui::TreePop();
             }
+
 
             ImGui::PopStyleColor();
         }
@@ -168,8 +193,8 @@ void PropertyEditorPanel::Render()
 
                 float Gravity = ProjectileComp->GetGravity();
                 if (ImGui::InputFloat("Gravity", &Gravity, 0.f, 10000.f, "%.1f"))
-                    ProjectileComp->SetGravity(Gravity); 
-                
+                    ProjectileComp->SetGravity(Gravity);
+
                 float ProjectileLifetime = ProjectileComp->GetLifetime();
                 if (ImGui::InputFloat("Lifetime", &ProjectileLifetime, 0.f, 10000.f, "%.1f"))
                     ProjectileComp->SetLifetime(ProjectileLifetime);
@@ -181,7 +206,7 @@ void PropertyEditorPanel::Render()
                 if (ImGui::InputFloat3("Velocity", velocity, "%.1f")) {
                     ProjectileComp->SetVelocity(FVector(velocity[0], velocity[1], velocity[2]));
                 }
-                
+
                 ImGui::TreePop();
             }
 

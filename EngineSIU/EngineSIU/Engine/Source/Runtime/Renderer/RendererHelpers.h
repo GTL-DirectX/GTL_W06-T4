@@ -22,8 +22,8 @@ namespace MaterialUtils {
         data.DensityScalar = MaterialInfo.DensityScalar;
         data.SpecularColor = MaterialInfo.Specular;
         data.SpecularScalar = MaterialInfo.SpecularScalar;
-        data.EmmisiveColor = MaterialInfo.Emissive;
         data.TextureSlotMask = MaterialInfo.TextureSlotMask;
+        data.EmmisiveColor = (MaterialInfo.Emissive==FVector::Zero())?FVector(0.1f,0.1f,0.1f):MaterialInfo.Emissive;
 
         BufferManager->UpdateConstantBuffer(TEXT("FMaterialConstants"), data);
 

@@ -1,3 +1,4 @@
+/*
 // staticMeshPixelShader.hlsl
 
 Texture2D DiffuseTexture : register(t0);
@@ -137,3 +138,4 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     return output;
 }
+*/
