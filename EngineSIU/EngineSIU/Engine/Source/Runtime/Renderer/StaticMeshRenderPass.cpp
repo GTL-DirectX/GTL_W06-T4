@@ -127,10 +127,10 @@ void FStaticMeshRenderPass::PrepareRender()
 
 void FStaticMeshRenderPass::PrepareRenderState() const
 {
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
-
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader"), nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader"));
+    
     // 상수 버퍼 바인딩 예시
     /*ID3D11Buffer* PerObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FPerObjectConstantBuffer"));
     ID3D11Buffer* CameraConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FCameraConstantBuffer"));

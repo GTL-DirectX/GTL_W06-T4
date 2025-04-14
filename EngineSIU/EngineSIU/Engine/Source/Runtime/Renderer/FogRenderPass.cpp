@@ -150,8 +150,8 @@ void FFogRenderPass::PrepareRenderState(ID3D11ShaderResourceView* DepthSRV)
     Graphics->DeviceContext->OMSetBlendState(FogBlendState, nullptr, 0xffffffff);
 
     // 셰이더 설정
-    Graphics->DeviceContext->VSSetShader(FogVertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(FogPixelShader, nullptr, 0);
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"FogVertexShader"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"FogPixelShader"), nullptr, 0);
 
     // SRV & Sampler 바인딩
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &DepthSRV);
@@ -186,7 +186,7 @@ void FFogRenderPass::RenderFog(const std::shared_ptr<FEditorViewportClient>& Act
 
             Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &VertexInfo.Stride, &offset);
             Graphics->DeviceContext->IASetIndexBuffer(IndexInfo.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-            Graphics->DeviceContext->IASetInputLayout(InputLayout);
+            Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"FogVertexShader"));
 
             Graphics->DeviceContext->DrawIndexed(6, 0, 0);
         }
@@ -312,8 +312,8 @@ void FFogRenderPass::PrepareFinalRender()
     Graphics->DeviceContext->OMSetRenderTargets(1, &Graphics->FrameBufferRTV, nullptr);
     Graphics->DeviceContext->OMSetBlendState(FogBlendState, nullptr, 0xffffffff);
 
-    Graphics->DeviceContext->VSSetShader(FogVertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(FogQuadPixelShader, nullptr, 0);
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"FogVertexShader"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"FogQuadPixelShader"), nullptr, 0);
 
     // SRV & Sampler 바인딩
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &SceneSRV);
@@ -332,7 +332,7 @@ void FFogRenderPass::FinalRender()
 
     Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &VertexInfo.Stride, &offset);
     Graphics->DeviceContext->IASetIndexBuffer(IndexInfo.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
+    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"FogVertexShader"));
 
     Graphics->DeviceContext->DrawIndexed(6, 0, 0);
 }
