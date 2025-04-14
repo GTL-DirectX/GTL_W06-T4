@@ -40,4 +40,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 3
 map_d WorldGridMaterial_BaseColor_0.png
-map_Bump -bm 1.000000 WorldGridMaterial_Normal_0.png
+map_Bump WorldGridMaterial_Normal_0.png

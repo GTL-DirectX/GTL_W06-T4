@@ -266,7 +266,31 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
                        : Material.DiffuseColor;
     output.color = float4(baseColor * (lighting + Material.EmissiveColor), 1.0f);
     
+    // 아래 내용을 통해 Normalmapping
+    //float3 normal = Input.normal;
+    
+    //float3x3 MInverse3x3 = float3x3(
+    //    MInverseTranspose._11, MInverseTranspose._12, MInverseTranspose._13,
+    //    MInverseTranspose._21, MInverseTranspose._22, MInverseTranspose._23,
+    //    MInverseTranspose._31, MInverseTranspose._32, MInverseTranspose._33
+    //);
+    
+    //if (Material.TextureSlotMask & (1 << 3))
+    //{
+    //    float3 normalMap = BumpTexture.Sample(Sampler, Input.texcoord).rgb;
+        
+    //    normalMap = normalMap * 2.0f - 1.0f;
+
+    //    normal = normalize(mul(mul(normalMap, Input.tbn), MInverse3x3));
+    //}
+    
+
+    // 아래 내용은 Normal을 색상으로 표현 시 사용
+    // float3 normalColor = (normal + 1.0f) * 0.5f;
+    // output.color = float4(normalColor, 1.0f);
+    
     //output.color = float4(baseColor * (lighting + float3(0.1, 0.1, 0.1)), 1.0f);
+    
     return output;
     //return float4(finalColor, 1.0f);
 }
