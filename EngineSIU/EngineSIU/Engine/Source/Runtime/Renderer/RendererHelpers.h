@@ -67,8 +67,11 @@ namespace MaterialUtils
 
         if (MaterialInfo.TextureSlotMask & MaterialTextureFlags::Bump) {
             std::shared_ptr<FTexture> texture = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.BumpTexturePath);
-            Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Bump, 1, &texture->TextureSRV);
-            Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
+            if (texture)
+            {
+                Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Bump, 1, &texture->TextureSRV);
+                Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
+            }
         }
         else {
             ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
