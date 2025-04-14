@@ -17,13 +17,10 @@ ULightComponent::~ULightComponent()
 UObject* ULightComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
-
-    NewComponent->Light = Light;
-
     return NewComponent;
 }
 
-void ULightComponent::SetDiffuseColor(FLinearColor NewColor)
+/*void ULightComponent::SetDiffuseColor(FLinearColor NewColor)
 {
     Light.DiffuseColor = FVector(NewColor.R, NewColor.G, NewColor.B);
 }
@@ -76,15 +73,15 @@ float ULightComponent::GetAttenuationRadius()
 float ULightComponent::GetFalloff()
 {
     return Light.Falloff;
-}
+}*/
 
 void ULightComponent::InitializeLight()
 {  
     AABB.max = { 1.f,1.f,0.1f };
     AABB.min = { -1.f,-1.f,-0.1f };
     
-    Light = FLight();
-    Light.Enabled = 1;
+    //Light = FLight();
+    //Light.Enabled = 1;
 }
 
 void ULightComponent::TickComponent(float DeltaTime)

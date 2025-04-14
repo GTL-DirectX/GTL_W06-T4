@@ -3,6 +3,7 @@
 #include "IRenderPass.h"
 #include "Define.h"
 
+/*
 class FDXDShaderManager;
 class UWorld;
 class FEditorViewportClient;
@@ -30,3 +31,4 @@ private:
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;
 };
+*/

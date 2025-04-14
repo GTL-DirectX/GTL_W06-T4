@@ -9,6 +9,7 @@
 
 #include "EngineBaseTypes.h"
 #include "Define.h"
+#include "LightManager.h"
 #include "Container/Set.h"
 
 #include "D3D11RHI/GraphicDevice.h"
@@ -24,7 +25,7 @@ class FEditorViewportClient;
 class FStaticMeshRenderPass;
 class FBillboardRenderPass;
 class FGizmoRenderPass;
-class FUpdateLightBufferPass;
+//class FUpdateLightBufferPass;
 class FDepthBufferDebugPass;
 class FLineRenderPass;
 class FFogRenderPass;
@@ -45,6 +46,8 @@ public:
     void ClearRenderArr();
     void Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
 
+    void HotReload();
+
     // 뷰 모드 변경
     void ChangeViewMode(EViewModeIndex evi);
     //==========================================================================
@@ -60,15 +63,17 @@ public:
     void CreateConstantBuffers();
     void ReleaseConstantBuffer();
 
+    void BindGlobalConstantBuffers();
 public:
     FGraphicsDevice* Graphics;
     FDXDBufferManager* BufferManager;
     FDXDShaderManager* ShaderManager = nullptr;
+    FLightManager* LightManager;
 
     FStaticMeshRenderPass* StaticMeshRenderPass = nullptr;
     FBillboardRenderPass* BillboardRenderPass = nullptr;
     FGizmoRenderPass* GizmoRenderPass = nullptr;
-    FUpdateLightBufferPass* UpdateLightBufferPass = nullptr;
+    //FUpdateLightBufferPass* UpdateLightBufferPass = nullptr;
     FLineRenderPass* LineRenderPass = nullptr;
     FDepthBufferDebugPass* DepthBufferDebugPass = nullptr;
     FFogRenderPass* FogRenderPass = nullptr;

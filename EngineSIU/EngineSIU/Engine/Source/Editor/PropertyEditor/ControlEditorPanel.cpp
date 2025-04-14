@@ -23,8 +23,9 @@
 
 #include "Actors/Cube.h"
 
+#include "Engine/EngineTypes.h"
 #include "Engine/EditorEngine.h"
-#include <Actors/HeightFogActor.h>
+#include "Actors/HeightFogActor.h"
 
 void ControlEditorPanel::Render()
 {
@@ -263,13 +264,16 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         };
 
         static const Primitive primitives[] = {
-            { .label= "Cube",      .obj= OBJ_CUBE },
-            { .label= "Sphere",    .obj= OBJ_SPHERE },
-            { .label= "PointLight", .obj= OBJ_PointLight },
-            { .label= "Particle",  .obj= OBJ_PARTICLE },
-            { .label= "Text",      .obj= OBJ_Text },
-            { .label= "Fireball",  .obj = OBJ_Fireball},
-            { .label= "Fog",       .obj= OBJ_Fog }
+            {.label = "Cube",      .obj = OBJ_CUBE },
+            {.label = "Sphere",    .obj = OBJ_SPHERE },
+            {.label = "PointLight", .obj = OBJ_PointLight },
+            {.label = "DirectionalLight", .obj = OBJ_DirectionalLight },
+            {.label = "SpotLight",    .obj = OBJ_SpotLight },
+            {.label = "AmbientLight", .obj = OBJ_AmbientLight },
+            {.label = "Particle",  .obj = OBJ_PARTICLE },
+            {.label = "Text",      .obj = OBJ_Text },
+            {.label = "Fireball",  .obj = OBJ_Fireball},
+            {.label = "Fog",       .obj = OBJ_Fog }
         };
 
         for (const auto& primitive : primitives)
@@ -300,8 +304,31 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     ALight* LightActor = World->SpawnActor<ALight>();
                     LightActor->SetActorLabel(TEXT("OBJ_PointLight"));
+                    LightActor->SetLightType(ELightType::Point);
                     break;
                 }
+                case OBJ_DirectionalLight:
+                {
+                    ALight* LightActor = World->SpawnActor<ALight>();
+                    LightActor->SetActorLabel(TEXT("OBJ_DirectionalLight"));
+                    LightActor->SetLightType(ELightType::Directional);
+                    break;
+                }
+                case OBJ_SpotLight:
+                {
+                    ALight* LightActor = World->SpawnActor<ALight>();
+                    LightActor->SetActorLabel(TEXT("OBJ_SpotLight"));
+                    LightActor->SetLightType(ELightType::Spot);
+                    break;
+                }
+                case OBJ_AmbientLight:
+                {
+                    ALight* LightActor = World->SpawnActor<ALight>();
+                    LightActor->SetActorLabel(TEXT("OBJ_AmbientLight"));
+                    LightActor->SetLightType(ELightType::Ambient);
+                    break;
+                }
+
                 case OBJ_PARTICLE:
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
@@ -322,7 +349,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     TextComponent->SetTexture(L"Assets/Texture/font.png");
                     TextComponent->SetRowColumnCount(106, 106);
                     TextComponent->SetText(L"안녕하세요 Jungle 1");
-                    
+
                     break;
                 }
                 case OBJ_Fireball:
@@ -338,7 +365,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor->SetActorLabel(TEXT("OBJ_HeightFog"));
                     break;
                 }
-                case OBJ_SpotLight:
                 case OBJ_TRIANGLE:
                 case OBJ_CAMERA:
                 case OBJ_PLAYER:
@@ -391,8 +417,15 @@ void ControlEditorPanel::CreateFlagButton() const
 
     ImGui::SameLine();
 
-    const char* ViewModeNames[] = { "Lit", "Unlit", "Wireframe", "SceneDepth" };
-    
+    /*char* ViewModes[EViewModeIndex::Max];
+    for (int i = 0; i < EViewModeIndex::Max; i++)
+    {
+        TCHAR ViewMode = *GetData(GetViewModeIndexAsString((EViewModeIndex)i));
+        ViewModes[i] = &ViewMode;
+    }*/
+
+    const char* ViewModeNames[] = { "Lit_Gouraud", "Lit_Lambert", "Lit_Phong", "Unlit", "Wireframe", "SceneDepth" };
+
     int rawViewMode = (int)ActiveViewport->GetViewMode();
     int safeIndex = (rawViewMode >= 0) ? (rawViewMode % 4) : 0;
     FString ViewModeControl = ViewModeNames[safeIndex];
@@ -431,7 +464,7 @@ void ControlEditorPanel::CreateFlagButton() const
         ImGui::OpenPopup("ShowControl");
     }
 
-    const char* items[] = { "AABB", "Primitive", "BillBoard", "UUID", "Fog"};
+    const char* items[] = { "AABB", "Primitive", "BillBoard", "UUID", "Fog" };
     uint64 ActiveViewportFlags = ActiveViewport->GetShowFlag();
 
     if (ImGui::BeginPopup("ShowControl"))
@@ -442,7 +475,7 @@ void ControlEditorPanel::CreateFlagButton() const
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Primitives)) != 0,
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) != 0,
             (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_UUIDText)) != 0,
-            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Fog)) !=0
+            (ActiveViewportFlags & static_cast<uint64>(EEngineShowFlags::SF_Fog)) != 0
         };  // 각 항목의 체크 상태 저장
 
         for (int i = 0; i < IM_ARRAYSIZE(items); i++)
@@ -465,7 +498,7 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize, ImFont* IconFont) co
     float CenterX = (WindowSize.x - ButtonSize.x) / 2.5f;
 
     ImGui::SetCursorScreenPos(ImVec2(CenterX - 40.0f, 10.0f));
-    
+
     if (ImGui::Button("\ue9a8", ButtonSize)) // Play
     {
         UE_LOG(LogLevel::Display, TEXT("PIE Button Clicked"));
@@ -478,7 +511,7 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize, ImFont* IconFont) co
         UE_LOG(LogLevel::Display, TEXT("Stop Button Clicked"));
         Engine->EndPIE();
     }
-    
+
 }
 
 // code is so dirty / Please refactor

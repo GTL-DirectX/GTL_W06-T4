@@ -1,20 +1,15 @@
-﻿#include "LightComponentBase.h"
+#include "LightComponentBase.h"
+
 
 ULightComponentBase::ULightComponentBase()
 {
 }
-
-float ULightComponentBase::GetIntensity()
+UObject* ULightComponentBase::Duplicate(UObject* InOuter)
 {
-    return Intensity;
-}
+    ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
-FColor ULightComponentBase::GetLightColor()
-{
-    return LightColor;
-}
+    // Light 데이터 복사
+    NewComponent->SetLight(this->GetLight());
 
-bool ULightComponentBase::IsVisible() const
-{
-    return bVisible;
+    return NewComponent;
 }

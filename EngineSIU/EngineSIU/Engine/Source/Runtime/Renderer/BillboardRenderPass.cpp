@@ -59,17 +59,17 @@ void FBillboardRenderPass::PrepareRender()
 
 void FBillboardRenderPass::PrepareTextureShader() const
 {
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"VertexBillboardShader"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"PixelBillboardShader"), nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"VertexBillboardShader"));
 
-    BufferManager->BindConstantBuffer(TEXT("FPerObjectConstantBuffer"), 0, EShaderStage::Vertex);
+    //BufferManager->BindConstantBuffer(TEXT("FPerObjectConstantBuffer"), 0, EShaderStage::Vertex);
 }
 
 void FBillboardRenderPass::PrepareSubUVConstant() const
 {
-    BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Vertex);
-    BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Pixel);
+    BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 0, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 0, EShaderStage::Pixel);
 }
 
 void FBillboardRenderPass::UpdateSubUVConstant(FVector2D uvOffset, FVector2D uvScale) const
@@ -83,11 +83,12 @@ void FBillboardRenderPass::UpdateSubUVConstant(FVector2D uvOffset, FVector2D uvS
 
 void FBillboardRenderPass::UpdatePerObjectConstant(const FMatrix& Model, const FMatrix& View, const FMatrix& Projection, const FVector4& UUIDColor, bool Selected) const
 {
-    FMatrix MVP = RendererHelpers::CalculateMVP(Model, View, Projection);
+    /*FMatrix MVP = RendererHelpers::CalculateMVP(Model, View, Projection);
     FMatrix NormalMatrix = RendererHelpers::CalculateNormalMatrix(Model);
-    FPerObjectConstantBuffer data(MVP, NormalMatrix, UUIDColor, Selected);
-
-    BufferManager->UpdateConstantBuffer(TEXT("FPerObjectConstantBuffer"), data);
+    FPerObjectConstantBuffer data(MVP, NormalMatrix, UUIDColor, Selected);*/
+    FMatrix MInverseTranspose = RendererHelpers::CalculateNormalMatrix(Model); // [변경됨]
+    FPerObjectConstantBuffer Data(Model, View, Projection, MInverseTranspose);
+    BufferManager->UpdateConstantBuffer(TEXT("FPerObjectConstantBuffer"), Data);
 }
 
 void FBillboardRenderPass::RenderTexturePrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* TextureSRV, ID3D11SamplerState* SamplerState) const
@@ -119,13 +120,13 @@ void FBillboardRenderPass::CreateShader()
 
     Stride = sizeof(FVertexTexture);
 
-    HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"VertexBillboardShader", L"Shaders/VertexBillboardShader.hlsl", "main", TextureLayoutDesc, ARRAYSIZE(TextureLayoutDesc));
+    HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"BillboardVertexShader", L"Shaders/BillboardVertexShader.hlsl", "mainVS", TextureLayoutDesc, ARRAYSIZE(TextureLayoutDesc));
 
-    hr = ShaderManager->AddPixelShader(L"PixelBillboardShader", L"Shaders/PixelBillboardShader.hlsl", "main");
+    hr = ShaderManager->AddPixelShader(L"BillboardPixelShader", L"Shaders/BillboardPixelShader.hlsl", "mainPS");
 
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"VertexBillboardShader");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"PixelBillboardShader");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"VertexBillboardShader");
+    VertexShader = ShaderManager->GetVertexShaderByKey(L"BillboardVertexShader");
+    PixelShader = ShaderManager->GetPixelShaderByKey(L"BillboardPixelShader");
+    InputLayout = ShaderManager->GetInputLayoutByKey(L"BillboardVertexShader");
 }
 
 void FBillboardRenderPass::ReleaseShader()
