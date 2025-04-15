@@ -246,7 +246,7 @@ VS_OUT Uber_VS(VS_IN input)
     output.tbn = tbn;
     return output;
 }
-float3 CalculateDefaultLighting(float3 worldPos, float3 normal)
+float3 CalculateBlinnPhongLighting(float3 worldPos, float3 normal)
 {
     float3 result = AmbientLight.Color * AmbientLight.Intensity * Material.AmbientColor;
 
@@ -370,7 +370,7 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
 #elif defined(LIGHTING_MODEL_LAMBERT)
     lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal),baseColor);
 #elif defined(LIGHTING_MODEL_PHONG)
-    lighting = CalculateDefaultLighting(Input.worldPos, normalize(Input.normal));
+    lighting = CalculateBlinnPhongLighting(Input.worldPos, normalize(Input.normal));
 #else
     // No lighting, 기본 베이스 색상만 적용
     lighting = float4(1,1,1,1);
