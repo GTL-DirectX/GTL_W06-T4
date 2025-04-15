@@ -149,11 +149,18 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
 
     HRESULT hr = S_OK;
 
-    ID3DBlob* VertexShaderCSO = nullptr;
-    ID3DBlob* ErrorBlob = nullptr;
+     ID3DBlob* VertexShaderCSO = nullptr;
+     ID3DBlob* ErrorBlob = nullptr;
+
+    FVertexShaderInfo NewVertexShaderInfo;
+    NewVertexShaderInfo.FileName = FileName;
+    NewVertexShaderInfo.EntryPoint = EntryPoint;
+    NewVertexShaderInfo.Layout.assign(Layout, Layout + LayoutSize);
+    NewVertexShaderInfo.LayoutSize = LayoutSize;
+    NewVertexShaderInfo.defines = defines;
 
     // defines 종료 명시
-    defines.Add({nullptr, nullptr});
+     defines.Add({nullptr, nullptr});
 
     hr = D3DCompileFromFile(FileName.c_str(), defines.GetData(), D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), "vs_5_0", shaderFlags, 0, &VertexShaderCSO, &ErrorBlob);
     if (FAILED(hr))
@@ -171,6 +178,7 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
     {
         return hr;
     }
+    NewVertexShaderInfo.VertexShader = NewVertexShader;
 
     ID3D11InputLayout* NewInputLayout;
     hr = DXDDevice->CreateInputLayout(Layout, LayoutSize, VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &NewInputLayout);
@@ -179,14 +187,6 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
         VertexShaderCSO->Release();
         return hr;
     }
-
-    FVertexShaderInfo NewVertexShaderInfo;
-    NewVertexShaderInfo.FileName = FileName;
-    NewVertexShaderInfo.EntryPoint = EntryPoint;
-    NewVertexShaderInfo.VertexShader = NewVertexShader;
-    NewVertexShaderInfo.Layout.assign(Layout, Layout + LayoutSize);
-    NewVertexShaderInfo.LayoutSize = LayoutSize;
-    NewVertexShaderInfo.defines = defines;
 
     VertexShaders[Key] = NewVertexShaderInfo;
     InputLayouts[Key] = NewInputLayout;

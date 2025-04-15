@@ -57,21 +57,15 @@ void FStaticMeshRenderPass::CreateShader(EViewModeIndex viewMode)
     // 조명 모델 이름 배열
     const char* lightModels[] = {"LIGHTING_MODEL_GOURAUD", "LIGHTING_MODEL_LAMBERT", "LIGHTING_MODEL_PHONG"};
 
-    // 모든 조명 모델을 기본적으로 0으로 설정
-    for (const char* model : lightModels) {
-        defines.Add({model, "0"});
-    }
-
     // 선택된 조명 모델만 1로 변경
     std::wstring vsKey;
     std::wstring psKey;
     
     if (viewMode >= Lit_Gouraud && viewMode <= Lit_Phong) {
-        int index = viewMode - Lit_Gouraud; // 인덱스 계산 (열거형 값에 따라 조정 필요)
-        defines[index] = {lightModels[index], "1"};
+        defines.Add({lightModels[viewMode], nullptr});
         // 동적 셰이더 키 생성
-        vsKey = std::wstring(shortLightModels[index]) + L"VS";
-        psKey = std::wstring(shortLightModels[index]) + L"PS";
+        vsKey = std::wstring(shortLightModels[viewMode]) + L"VS";
+        psKey = std::wstring(shortLightModels[viewMode]) + L"PS";
     }
 
     if (viewMode >= Unlit)
