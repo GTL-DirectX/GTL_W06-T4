@@ -224,7 +224,7 @@ void FDXDShaderManager::HotReloadShader()
     {
         if (Value.VertexShader && IsOutDated(Value.FileName))
         {
-            UE_LOG(LogLevel::Display, TEXT("Shader Hot Reload"));
+            // UE_LOG(LogLevel::Display, TEXT("Shader Hot Reload"));
             Value.VertexShader->Release();
             AddVertexShaderAndInputLayout(Key, Value.FileName, Value.EntryPoint, Value.Layout.data(), Value.LayoutSize);
             //Value.VertexShader = GetVertexShaderByKey(Key);
