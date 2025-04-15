@@ -57,3 +57,4 @@ private:
     FObjMaterialInfo tempMaterialInfo;
     bool IsCreateMaterial;
 };
+

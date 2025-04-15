@@ -1,4 +1,4 @@
-﻿#include "ImGuiWidget.h"
+#include "ImGuiWidget.h"
 
 #include "Math/Vector.h"
 #include "Math/Rotator.h"
@@ -166,4 +166,35 @@ void FImGuiWidget::DrawRot3Control(const std::string& label, FRotator& values, f
         ImGui::PopStyleVar(2);
         ImGui::Columns(1);
         ImGui::PopID();
+}
+float FImGuiWidget::GetAdaptiveDragSpeed(float value)
+{
+    if (value == 0.0f)
+        return 0.01f;
+    value = abs(value);
+    float exponent = floor(log10(std::max(value, 0.0001f)));
+    return pow(10.0f, exponent - 1); // 한 단계 더 미세하게 조절하고 싶으면 -1 유지
+}
+
+bool FImGuiWidget::DrawFloatWithSliderAndDrag(const char* label, float& value, float min, float max, const char* format)
+{
+    bool bChanged = false;
+
+    // 레이블 한 줄 위에 출력
+    ImGui::Text("%s", label);
+
+    float dragSpeed = GetAdaptiveDragSpeed(value);
+
+    // 한 줄 아래 수평 정렬
+    ImGui::PushItemWidth(100);
+    bChanged |= ImGui::DragFloat(std::string("##drag_").append(label).c_str(), &value, dragSpeed, min, max, format);
+    ImGui::PopItemWidth();
+
+    ImGui::SameLine();
+
+    ImGui::PushItemWidth(200);
+    bChanged |= ImGui::SliderFloat(std::string("##slider_").append(label).c_str(), &value, min, max, format);
+    ImGui::PopItemWidth();
+
+    return bChanged;
 }

@@ -137,7 +137,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     ChangeViewMode(ActiveViewport->GetViewMode());
     BindGlobalConstantBuffers();
     LightManager->UpdateLightBuffer();
-
+    LightManager->VisualizeLights(&GEngineLoop.PrimitiveDrawBatch);
     StaticMeshRenderPass->Render(ActiveViewport);
     //UpdateLightBufferPass->Render(ActiveViewport);
     BillboardRenderPass->Render(ActiveViewport);
