@@ -10,6 +10,7 @@ class ALight :public AActor
 public:
     ALight();
 
+    ULightComponent* GetLightComponent() const { return LightComponent; }
 protected:
     UPROPERTY
     (ULightComponent*, LightComponent, = nullptr);

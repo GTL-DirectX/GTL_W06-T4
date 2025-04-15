@@ -151,7 +151,7 @@ VS_OUT Uber_VS(VS_IN input)
     
     return output;
 }
-float3 CalculateLambertLighting(float3 worldPos, float3 normal)
+float3 CalculateDefaultLighting(float3 worldPos, float3 normal)
 {
     float3 result = AmbientLight.Color * AmbientLight.Intensity * Material.AmbientColor;
 
@@ -160,11 +160,6 @@ float3 CalculateLambertLighting(float3 worldPos, float3 normal)
         float3 lightDir = normalize(-DirectionalLight.Direction);
         float diff = max(dot(normal, lightDir), 0.0f);
         result += DirectionalLight.Color * DirectionalLight.Intensity * Material.DiffuseColor * diff;
-
-        float3 viewDir = normalize(CameraPosition - worldPos);
-        float3 halfDir = normalize(lightDir + viewDir);
-        float spec = pow(max(dot(normal, halfDir), 0.0f), 16); // 하드코딩된 shininess
-        result += DirectionalLight.Color * Material.SpecularColor * spec;
     }
 
     // Point Lights
@@ -174,17 +169,13 @@ float3 CalculateLambertLighting(float3 worldPos, float3 normal)
         float distance = length(toLight);
         if (distance > PointLights[i].AttenuationRadius)
             continue;
-
+        float radius = PointLights[i].AttenuationRadius;
+        float exp = PointLights[i].LightFalloffExponent;
+        float atten = pow(saturate(1 - distance / radius), exp);
         float3 lightDir = normalize(toLight);
+
         float diff = max(dot(normal, lightDir), 0.0f);
-        float att = pow(saturate(1.0f - distance / PointLights[i].AttenuationRadius), PointLights[i].LightFalloffExponent);
-
-        float3 viewDir = normalize(CameraPosition - worldPos);
-        float3 halfDir = normalize(lightDir + viewDir);
-        float spec = pow(max(dot(normal, halfDir), 0.0f), 16);
-
-        result += PointLights[i].Color * PointLights[i].Intensity * Material.DiffuseColor * diff * att;
-        result += PointLights[i].Color * Material.SpecularColor * spec * att;
+        result += PointLights[i].Color * PointLights[i].Intensity * Material.DiffuseColor * diff * atten;
     }
 
     // Spot Lights
@@ -213,7 +204,94 @@ float3 CalculateLambertLighting(float3 worldPos, float3 normal)
 
     return result;
 }
+float3 CalculateLambertLighting(float3 worldPos, float3 normal)
+{
+    float3 result = AmbientLight.Color * AmbientLight.Intensity * Material.AmbientColor;
 
+    // Directional Light
+    {
+        float3 lightDir = normalize(-DirectionalLight.Direction);
+        float diff = max(dot(normal, lightDir), 0.0f);
+        result += DirectionalLight.Color * DirectionalLight.Intensity * Material.DiffuseColor * diff;
+    }
+
+    // Point Lights
+    for (int i = 0; i < NUM_POINT_LIGHT; ++i)
+    {
+        float3 toLight = PointLights[i].Position - worldPos;
+        float distance = length(toLight);
+        if (distance > PointLights[i].AttenuationRadius)
+            continue;
+
+        float3 lightDir = normalize(toLight);
+        float diff = max(dot(normal, lightDir), 0.0f);
+        float att = pow(saturate(1.0f - distance / PointLights[i].AttenuationRadius), PointLights[i].LightFalloffExponent);
+
+        result += PointLights[i].Color * PointLights[i].Intensity * Material.DiffuseColor * diff * att;
+    }
+
+    // Spot Lights
+    for (int i = 0; i < NUM_SPOT_LIGHT; ++i)
+    {
+        float3 toLight = SpotLights[i].Position - worldPos;
+        float distance = length(toLight);
+        if (distance > SpotLights[i].AttenuationRadius)
+            continue;
+
+        float3 lightDir = normalize(toLight);
+        float diff = max(dot(normal, lightDir), 0.0f);
+        float att = pow(saturate(1.0f - distance / SpotLights[i].AttenuationRadius), SpotLights[i].LightFalloffExponent);
+
+        float angle = dot(lightDir, normalize(-SpotLights[i].Direction));
+        float spotFactor = smoothstep(SpotLights[i].OuterConeAngle, SpotLights[i].InnerConeAngle, angle);
+
+        result += SpotLights[i].Color * SpotLights[i].Intensity * Material.DiffuseColor * diff * att * spotFactor;
+    }
+
+    return result;
+}
+
+
+PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
+{
+    PS_OUT output;
+
+    // 1. 알베도 샘플링 및 텍스처 유무 판단
+    float3 albedo = Textures.Sample(Sampler, Input.texcoord).rgb;
+    //float3 baseColor = any(albedo != float3(0, 0, 0)) ? albedo : Material.DiffuseColor;
+    float3 baseColor =  Material.DiffuseColor;
+    baseColor = any(Textures.Sample(Sampler, Input.texcoord).rgb != float3(0, 0, 0))
+                       ? Textures.Sample(Sampler, Input.texcoord).rgb
+                       : Material.DiffuseColor;
+    float3 lighting = float3(1, 1, 1); // 기본 광량 (Unlit fallback)
+    
+#if LIGHTING_MODEL_GOURAUD
+    // Gouraud: Vertex에서 조명 계산해 전달받아야 함 (현재 미구현)
+    // lighting = Input.Lighting;
+    
+#elif LIGHTING_MODEL_LAMBERT
+    lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal));
+    
+#elif LIGHTING_MODEL_PHONG
+    lighting = CalculateDefaultLighting(Input.worldPos, normalize(Input.normal));
+    
+#else
+    // No lighting, 기본 베이스 색상만 적용
+    //lighting = float3(1, 1, 1);
+    lighting = CalculateDefaultLighting(Input.worldPos, normalize(Input.normal));
+#endif
+
+    lighting = saturate(lighting);
+    float3 finalColor = baseColor * lighting + Material.EmissiveColor;
+    output.color = float4(finalColor, 1.0f);
+
+    
+
+    return output;
+}
+
+
+/*
 PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
 {
     PS_OUT output;
@@ -236,12 +314,12 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
     {
         output.color = float4(baseColor, 1);
         
-    }*/
-    /*if (isSelected)
+    }
+    if (isSelected)
     {
         output.color += float4(0.02, 0.02, 0.02, 1);
 
-    }*/
+    }#1#
 
 #if LIGHTING_MODEL_GOURAUD
 
@@ -291,3 +369,5 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
     return output;
     //return float4(finalColor, 1.0f);
 }
+*/
+
