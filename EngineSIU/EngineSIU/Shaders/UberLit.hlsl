@@ -102,6 +102,32 @@ struct PS_OUT
     float4 color : SV_Target0;
 };
 
+float ComputeAttenuation(float distance, float radius, float exponent)
+{
+    return pow(saturate(1.0f - distance / radius), exponent);
+}
+
+float ComputeSpotFactor(float3 lightDir, float3 spotDirection, float inner, float outer)
+{
+    float angle = dot(lightDir, normalize(-spotDirection));
+    return smoothstep(cos(outer), cos(inner), angle);
+}
+
+float3 ComputeBlinnPhong(float3 lightColor, float intensity, float3 lightDir, float3 viewDir, float3 normal, float attenuation)
+{
+    float3 halfDir = normalize(lightDir + viewDir);
+
+    float diff = max(dot(normal, lightDir), 0.0f);
+
+    float specAngle = saturate(dot(normal, halfDir)); // 안전하게 클램핑
+    float spec = pow(specAngle, Material.SpecularScalar);
+
+    float3 diffuse = lightColor * intensity * Material.DiffuseColor * diff * attenuation;
+    float3 specular = lightColor * intensity * Material.SpecularColor * spec * attenuation;
+
+    return diffuse + specular;
+}
+
 float4 CalculateGouraudLight(float3 vPosition, float3 vNormal)
 {
     float4 cColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -154,11 +180,6 @@ float4 CalculateGouraudLight(float3 vPosition, float3 vNormal)
         {
             continue;
         }
-
-        if(spotFactor > cos(SpotLights[i].InnerConeAngle))
-        {
-            continue;
-        }
          
         // 내부/외부 원뿔 사이의 부드러운 감쇠 계산
         float smoothFactor = 1.0f;
@@ -196,75 +217,6 @@ float4 CalculateGouraudLight(float3 vPosition, float3 vNormal)
     cColor += float4(AmbientLight.Color * AmbientLight.Intensity, 1.0f);
     cColor.a = 1;
     return cColor;
-}
-
-VS_OUT Uber_VS(VS_IN input)
-{
-    VS_OUT output;
-    
-    output.materialIndex = input.materialIndex;
-    
-    /*
-    float4 worldPosition = mul(float4(input.position, 1), World);
-    
-    output.worldPos = worldPosition.xyz;
-    
-    float4 viewPosition = mul(worldPosition, View);
-    
-    output.position = mul(viewPosition, Projection);
-    */
-    float4 worldPosition = mul(float4(input.position, 1), World);
-    output.worldPos = worldPosition.xyz;
-    output.position = mul(float4(input.position, 1.0), GetMVP());
-  
-    output.normal = normalize(mul(input.normal, (float3x3) MInverseTranspose));
-    output.texcoord = input.texcoord;
-
-#if defined(LIGHTING_MODEL_GOURAUD)
-    output.color = CalculateGouraudLight(output.worldPos, output.normal);
-    return output;
-#elif defined(LIGHTING_MODEL_LAMBERT)
-    output.color = input.color;
-#elif defined(LIGHTING_MODEL_PHONG)
-    output.color = input.color;
-#endif
-    
-    float3 biTangent = cross(input.normal, input.tangent);
-    
-    float3x3 tbn =
-    {
-        input.tangent.x, input.tangent.y, input.tangent.z,
-        biTangent.x, biTangent.y, biTangent.z,
-        input.normal.x, input.normal.y, input.normal.z 
-    };
-    output.tbn = tbn;
-    return output;
-}
-
-float ComputeAttenuation(float distance, float radius, float exponent)
-{
-    return pow(saturate(1.0f - distance / radius), exponent);
-}
-
-float ComputeSpotFactor(float3 lightDir, float3 spotDirection, float inner, float outer)
-{
-    float angle = dot(lightDir, normalize(-spotDirection));
-    return smoothstep(cos(outer), cos(inner), angle);
-}
-
-float3 ComputeBlinnPhong(float3 lightColor, float intensity, float3 lightDir, float3 viewDir, float3 normal, float attenuation)
-{
-    float3 halfDir = normalize(lightDir + viewDir);
-
-    float diff = max(dot(normal, lightDir), 0.0f);
-
-    float specAngle = saturate(dot(normal, halfDir)); // 안전하게 클램핑
-    float spec = pow(specAngle, Material.SpecularScalar);
-
-    float3 diffuse = lightColor * intensity * Material.DiffuseColor * diff * attenuation;
-    float3 specular = lightColor * intensity * Material.SpecularColor * spec * attenuation;
-
-    return diffuse + specular;
 }
 
 float3 CalculateBlinnPhongLighting(float3 worldPos, float3 normal)
@@ -311,6 +263,7 @@ float3 CalculateBlinnPhongLighting(float3 worldPos, float3 normal)
 
     return result;
 }
+
 float3 CalculateLambertLighting(float3 worldPos, float3 normal, float3 albedo)
 {
     float3 result = AmbientLight.Color * AmbientLight.Intensity * Material.AmbientColor;
@@ -363,93 +316,10 @@ float3 CalculateLambertLighting(float3 worldPos, float3 normal, float3 albedo)
     return result;
 }
 
-
-PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
+float3 CalculateNormalFromMap(float3 baseNormal, float2 texCoord, float3x3 tbn)
 {
-    PS_OUT output;
-
-    // 1. 알베도 샘플링 및 텍스처 유무 판단
-    float3 albedo = DiffuseTexture.Sample(Sampler, Input.texcoord).rgb;
-    //float3 baseColor = any(albedo != float3(0, 0, 0)) ? albedo : Material.DiffuseColor;
-    float3 baseColor =  Material.DiffuseColor;
-    baseColor = any(albedo.rgb != float3(0, 0, 0)) ? albedo.rgb : baseColor;
-    float3 lighting = float3(1, 1, 1); // 기본 광량 (Unlit fallback)
+    float3 resultNormal = baseNormal;
     
-#if defined(LIGHTING_MODEL_GOURAUD)
-    lighting = Input.color;
-#elif defined(LIGHTING_MODEL_LAMBERT)
-    lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal),baseColor);
-#elif defined(LIGHTING_MODEL_PHONG)
-    lighting = CalculateBlinnPhongLighting(Input.worldPos, normalize(Input.normal));
-#else
-    // No lighting, 기본 베이스 색상만 적용
-    lighting = float4(1,1,1,1);
-#endif
-
-    lighting = saturate(lighting);
-    float3 finalColor = baseColor * lighting + Material.EmissiveColor;
-    output.color = float4(finalColor, 1.0f);
-    
-
-    return output;
-}
-
-
-/*
-PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
-{
-    PS_OUT output;
-    // 1) 알베도 샘플링
-    float3 albedo = DiffuseTexture.Sample(Sampler, input.texcoord).rgb;
-    // 2) 머티리얼 디퓨즈
-    float3 matDiffuse = Material.DiffuseColor.rgb;
-    // 3) 라이트 계산
-    float3 normal = input.normal;
-
-    bool hasTexture = any(albedo != float3(0, 0, 0));
-    float3 baseColor = hasTexture ? albedo : matDiffuse;
-
-    /*if (IsLit)
-    {
-        float3 lightRgb = Lighting(Input.worldPos, Input.normal).rgb;
-        float3 litColor = baseColor * lightRgb;
-        output.color = float4(litColor, 1);
-    }
-    else
-    {
-        output.color = float4(baseColor, 1);
-        
-    }
-    if (isSelected)
-    {
-        output.color += float4(0.02, 0.02, 0.02, 1);
-
-    }#1#
-
-#if defined(LIGHTING_MODEL_GOURAUD)
-    output.color = float4(baseColor * input.color, 1.0f);
-    return output;
-#elif defined(LIGHTING_MODEL_LAMBERT)
-    {
-    float3 lighting = CalculateLambertLighting(input.worldPos, normalize(input.normal));
-    float3 baseColor = any(Textures.Sample(Sampler, input.texcoord).rgb != float3(0, 0, 0))
-                       ? Textures.Sample(Sampler, input.texcoord).rgb
-                       : Material.DiffuseColor;
-
-    output.color = float4(baseColor * lighting + Material.EmissiveColor, 1.0f);
-    }
-    output.color(1,0,0);
-    return output;
-#elif defined(LIGHTING_MODEL_PHONG)
-    output.color = float4(baseColor, 1);
-    output.color(0,1,0);
-    return output;
-#else
-    // Lambert, Gouraud, Phong이 아닌 경우 기본 베이스 색상
-    output.color = float4(baseColor, 1);
-    return output;
-#endif
-    // 아래 내용을 통해 Normalmapping 사용
     if (Material.TextureSlotMask & (1 << 3))
     {
         float3x3 MInverse3x3 = float3x3(
@@ -457,27 +327,74 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
             MInverseTranspose._21, MInverseTranspose._22, MInverseTranspose._23,
             MInverseTranspose._31, MInverseTranspose._32, MInverseTranspose._33
         );
-        float3 normalMap = BumpTexture.Sample(Sampler, input.texcoord).rgb;
         
+        float3 normalMap = BumpTexture.Sample(Sampler, texCoord).rgb;
         normalMap = normalMap * 2.0f - 1.0f;
-
-        normal = normalize(mul(mul(normalMap, input.tbn), MInverse3x3));
+        
+        resultNormal = normalize(mul(mul(normalMap, tbn), MInverse3x3));
     }
     
-    float3 lighting = CalculateLambertLighting(input.worldPos, normalize(normal));
-    lighting = saturate(lighting);
-    baseColor = any(DiffuseTexture.Sample(Sampler, input.texcoord).rgb != float3(0, 0, 0))
-                       ? DiffuseTexture.Sample(Sampler, input.texcoord).rgb
-                       : Material.DiffuseColor;
-    output.color = float4(baseColor * (lighting + Material.EmissiveColor), 1.0f);
-
-    // 아래 내용은 Normal을 색상으로 표현 시 사용
-    // float3 normalColor = (normal + 1.0f) * 0.5f;
-    // output.color = float4(normalColor, 1.0f);
-    
-    //output.color = float4(baseColor * (lighting + float3(0.1, 0.1, 0.1)), 1.0f);
-    return output;
-    //return float4(finalColor, 1.0f);
+    return resultNormal;
 }
-*/
+
+VS_OUT Uber_VS(VS_IN input)
+{
+    VS_OUT output;
+    
+    float4 worldPosition = mul(float4(input.position, 1), World);
+    output.materialIndex = input.materialIndex;
+    output.worldPos = worldPosition.xyz;
+    output.position = mul(float4(input.position, 1.0), GetMVP());
+    output.normal = normalize(mul(input.normal, (float3x3) MInverseTranspose));
+    output.texcoord = input.texcoord;
+
+#if defined(LIGHTING_MODEL_GOURAUD)
+    output.color = CalculateGouraudLight(output.worldPos, output.normal);
+    return output;
+#elif defined(LIGHTING_MODEL_LAMBERT)
+    output.color = input.color;
+#elif defined(LIGHTING_MODEL_PHONG)
+    output.color = input.color;
+#endif
+    float3 biTangent = cross(input.normal, input.tangent);
+    
+    float3x3 tbn =
+    {
+        input.tangent.x, input.tangent.y, input.tangent.z,
+        biTangent.x, biTangent.y, biTangent.z,
+        input.normal.x, input.normal.y, input.normal.z 
+    };
+    output.tbn = tbn;
+    return output;
+}
+
+PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
+{
+    PS_OUT output;
+
+    // Diffuse 샘플링 및 텍스처 유무 판단
+    float3 baseColor =  Material.DiffuseColor;
+    if (Material.TextureSlotMask & (1 << 0))
+    {
+        baseColor = DiffuseTexture.Sample(Sampler, Input.texcoord).rgb;
+    }
+    float3 lighting = float3(1, 1, 1); // 기본 광량 (Unlit fallback)
+    float3 normal = Input.normal;
+ 
+#if defined(LIGHTING_MODEL_GOURAUD)
+    lighting = Input.color;
+#elif defined(LIGHTING_MODEL_LAMBERT)
+    normal = CalculateNormalFromMap(Input.normal, Input.texcoord, Input.tbn);
+    lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal),baseColor);
+#elif defined(LIGHTING_MODEL_PHONG)
+    normal = CalculateNormalFromMap(Input.normal, Input.texcoord, Input.tbn);
+    lighting = CalculateBlinnPhongLighting(Input.worldPos, normalize(Input.normal));
+#else
+#endif
+    lighting = saturate(lighting);
+    float3 finalColor = baseColor * lighting + Material.EmissiveColor;
+    output.color = float4(finalColor, 1.0f);
+    
+    return output;
+}
 
