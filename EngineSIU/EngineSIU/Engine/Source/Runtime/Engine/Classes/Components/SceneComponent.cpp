@@ -36,6 +36,7 @@ void USceneComponent::TickComponent(float DeltaTime)
 
 int USceneComponent::CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance)
 {
+    // TODO: 나중에 지워도 될듯
     int nIntersections = 0;
     return nIntersections;
 }
@@ -43,7 +44,8 @@ int USceneComponent::CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDi
 FVector USceneComponent::GetForwardVector() const
 {
 	FVector Forward = FVector(1.f, 0.f, 0.0f);
-	Forward = JungleMath::FVectorRotate(Forward, RelativeRotation);
+	//Forward = JungleMath::FVectorRotate(Forward, RelativeRotation);
+    Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
 	return Forward;
 }
 

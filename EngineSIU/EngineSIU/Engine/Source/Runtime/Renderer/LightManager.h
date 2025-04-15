@@ -19,8 +19,8 @@ private:
 private:
     FDXDBufferManager* BufferManager = nullptr;
 
-    FAmbientLightInfo AmbientLight;
-    FDirectionalLightInfo DirectionalLight;
+    FAmbientLightInfo AmbientLightInfo;
+    FDirectionalLightInfo DirectionalLightInfo;
     TArray<FPointLightInfo> PointLights;
     TArray<FSpotLightInfo> SpotLights;
 };

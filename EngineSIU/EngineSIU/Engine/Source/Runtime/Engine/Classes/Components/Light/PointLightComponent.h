@@ -9,26 +9,9 @@ class UPointLightComponent : public ULightComponent
 public:
     UPointLightComponent() = default;
 
-    virtual ELightType GetLightType() const override { return ELightType::Point; }
+    virtual void UploadLightInfo(void* OutInfo) const override;
 
-    virtual void UploadLightInfo(void* OutInfo) const override
-    {
-        FPointLightInfo* Info = reinterpret_cast<FPointLightInfo*>(OutInfo);
-        Info->Color = GetDiffuseColor().ToFVector();
-        Info->Intensity = GetIntensity();
-        Info->Position = GetWorldLocation();
-        Info->AttenuationRadius = AttRadius;
-        Info->LightFalloffExponent = Falloff;
-    }
-
-    virtual UObject* Duplicate(UObject* InOuter) override
-    {
-        ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
-        //NewComponent->SetLight(GetLight());
-        NewComponent->AttRadius = AttRadius;
-        NewComponent->Falloff = Falloff;
-        return NewComponent;
-    }
+    virtual UObject* Duplicate(UObject* InOuter) override;
     float GetAttenuationRadius() const { return AttRadius; }
     void SetAttenuationRadius(float InRadius) { AttRadius = InRadius; }
 
