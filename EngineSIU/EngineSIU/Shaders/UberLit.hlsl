@@ -255,8 +255,11 @@ float ComputeSpotFactor(float3 lightDir, float3 spotDirection, float inner, floa
 float3 ComputeBlinnPhong(float3 lightColor, float intensity, float3 lightDir, float3 viewDir, float3 normal, float attenuation)
 {
     float3 halfDir = normalize(lightDir + viewDir);
+
     float diff = max(dot(normal, lightDir), 0.0f);
-    float spec = pow(max(dot(normal, halfDir), 0.0f), 100);
+
+    float specAngle = saturate(dot(normal, halfDir)); // 안전하게 클램핑
+    float spec = pow(specAngle, Material.SpecularScalar);
 
     float3 diffuse = lightColor * intensity * Material.DiffuseColor * diff * attenuation;
     float3 specular = lightColor * intensity * Material.SpecularColor * spec * attenuation;
