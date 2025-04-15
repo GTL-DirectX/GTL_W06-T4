@@ -352,12 +352,12 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
     PS_OUT output;
 
     // 1. 알베도 샘플링 및 텍스처 유무 판단
-    float3 albedo = Textures.Sample(Sampler, Input.texcoord).rgb;
+    float3 albedo = DiffuseTexture.Sample(Sampler, Input.texcoord).rgb;
     //float3 baseColor = any(albedo != float3(0, 0, 0)) ? albedo : Material.DiffuseColor;
     float3 baseColor =  Material.DiffuseColor;
-    baseColor = any(Textures.Sample(Sampler, Input.texcoord).rgb != float3(0, 0, 0))
-                       ? Textures.Sample(Sampler, Input.texcoord).rgb
-                       : Material.DiffuseColor;
+    baseColor = any(albedo.rgb != float3(0, 0, 0))
+                       ? albedo.rgb
+                       : baseColor;
     float3 lighting = float3(1, 1, 1); // 기본 광량 (Unlit fallback)
     
 #if defined(LIGHTING_MODEL_GOURAUD)
