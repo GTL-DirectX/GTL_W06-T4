@@ -33,7 +33,7 @@ void FDXDShaderManager::ReleaseAllShader()
 
 }
 
-HRESULT FDXDShaderManager::AddPixelShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint)
+HRESULT FDXDShaderManager::AddPixelShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, TArray<D3D_SHADER_MACRO> defines)
 {
     UINT shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
@@ -44,8 +44,11 @@ HRESULT FDXDShaderManager::AddPixelShader(const std::wstring& Key, const std::ws
     if (DXDDevice == nullptr)
         return S_FALSE;
 
+    // defines 종료 명시
+    defines.Add({nullptr, nullptr});
+
     ID3DBlob* PsBlob = nullptr;
-    hr = D3DCompileFromFile(FileName.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), "ps_5_0", shaderFlags, 0, &PsBlob, nullptr);
+    hr = D3DCompileFromFile(FileName.c_str(), defines.GetData(), D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), "ps_5_0", shaderFlags, 0, &PsBlob, nullptr);
     if (FAILED(hr))
         return hr;
 
@@ -62,6 +65,7 @@ HRESULT FDXDShaderManager::AddPixelShader(const std::wstring& Key, const std::ws
     NewPixelShaderInfo.FileName = FileName;
     NewPixelShaderInfo.EntryPoint = EntryPoint;
     NewPixelShaderInfo.PixelShader = NewPixelShader;
+    NewPixelShaderInfo.defines = defines;
 
     PixelShaders[Key] = NewPixelShaderInfo;
 
@@ -78,7 +82,7 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
     return E_NOTIMPL;
 }
 
-HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint)
+HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, TArray<D3D_SHADER_MACRO> defines)
 {
     if (DXDDevice == nullptr)
         return S_FALSE;
@@ -88,7 +92,10 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
     ID3DBlob* VertexShaderCSO = nullptr;
     ID3DBlob* ErrorBlob = nullptr;
 
-    hr = D3DCompileFromFile(FileName.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), "vs_5_0", 0, 0, &VertexShaderCSO, &ErrorBlob);
+    // defines 종료 명시
+    defines.Add({nullptr, nullptr});
+
+    hr = D3DCompileFromFile(FileName.c_str(), defines.GetData(), D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), "vs_5_0", 0, 0, &VertexShaderCSO, &ErrorBlob);
     if (FAILED(hr))
     {
         if (ErrorBlob) {
@@ -112,6 +119,7 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
     NewVertexShaderInfo.VertexShader = NewVertexShader;
     NewVertexShaderInfo.Layout = {};
     NewVertexShaderInfo.LayoutSize = 0;
+    NewVertexShaderInfo.defines = defines;
 
     VertexShaders[Key] = NewVertexShaderInfo;
 
@@ -130,7 +138,7 @@ HRESULT FDXDShaderManager::AddInputLayout(const std::wstring& Key, const D3D11_I
     return S_OK;
 }
 
-HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize)
+HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize, TArray<D3D_SHADER_MACRO> defines)
 {
     UINT shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
@@ -144,7 +152,10 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
     ID3DBlob* VertexShaderCSO = nullptr;
     ID3DBlob* ErrorBlob = nullptr;
 
-    hr = D3DCompileFromFile(FileName.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), "vs_5_0", shaderFlags, 0, &VertexShaderCSO, &ErrorBlob);
+    // defines 종료 명시
+    defines.Add({nullptr, nullptr});
+
+    hr = D3DCompileFromFile(FileName.c_str(), defines.GetData(), D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), "vs_5_0", shaderFlags, 0, &VertexShaderCSO, &ErrorBlob);
     if (FAILED(hr))
     {
         if (ErrorBlob) {
@@ -175,6 +186,7 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
     NewVertexShaderInfo.VertexShader = NewVertexShader;
     NewVertexShaderInfo.Layout.assign(Layout, Layout + LayoutSize);
     NewVertexShaderInfo.LayoutSize = LayoutSize;
+    NewVertexShaderInfo.defines = defines;
 
     VertexShaders[Key] = NewVertexShaderInfo;
     InputLayouts[Key] = NewInputLayout;
@@ -226,7 +238,7 @@ void FDXDShaderManager::HotReloadShader()
         {
             // UE_LOG(LogLevel::Display, TEXT("Shader Hot Reload"));
             Value.VertexShader->Release();
-            AddVertexShaderAndInputLayout(Key, Value.FileName, Value.EntryPoint, Value.Layout.data(), Value.LayoutSize);
+            AddVertexShaderAndInputLayout(Key, Value.FileName, Value.EntryPoint, Value.Layout.data(), Value.LayoutSize, Value.defines);
             //Value.VertexShader = GetVertexShaderByKey(Key);
             UpdateShaderFileTime(Value.FileName);
         }
@@ -237,7 +249,7 @@ void FDXDShaderManager::HotReloadShader()
         if (Value.PixelShader && IsOutDated(Value.FileName))
         {
             Value.PixelShader->Release();
-            AddPixelShader(Key, Value.FileName, Value.EntryPoint);
+            AddPixelShader(Key, Value.FileName, Value.EntryPoint, Value.defines);
             //Value.PixelShader = GetPixelShaderByKey(Key);
             UpdateShaderFileTime(Value.FileName);
         }
