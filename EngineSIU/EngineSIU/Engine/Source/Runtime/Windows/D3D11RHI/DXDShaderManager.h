@@ -6,6 +6,8 @@
 
 #include <filesystem>
 
+#include "Container/Array.h"
+
 
 struct FVertexShaderData
 {
@@ -20,6 +22,7 @@ struct FVertexShaderInfo
     ID3D11VertexShader* VertexShader;
     std::vector<D3D11_INPUT_ELEMENT_DESC> Layout;
     uint32_t LayoutSize;
+    TArray<D3D_SHADER_MACRO> defines;
 };
 
 struct FPixelShaderInfo
@@ -27,6 +30,7 @@ struct FPixelShaderInfo
     std::wstring FileName;
     std::string EntryPoint;
     ID3D11PixelShader* PixelShader;
+    TArray<D3D_SHADER_MACRO> defines;
 };
 
 class FDXDShaderManager
@@ -42,13 +46,14 @@ private:
 
 public:
 	HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName);
-	HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint);
+	HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, TArray<D3D_SHADER_MACRO> defines = TArray<D3D_SHADER_MACRO>());
 	HRESULT AddInputLayout(const std::wstring& Key, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize);
 
 	
-	HRESULT AddVertexShaderAndInputLayout(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize);
+	HRESULT AddVertexShaderAndInputLayout(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t
+                                          LayoutSize, TArray<D3D_SHADER_MACRO> defines = TArray<D3D_SHADER_MACRO>());
 
-	HRESULT AddPixelShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint);
+	HRESULT AddPixelShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, TArray<D3D_SHADER_MACRO> defines = TArray<D3D_SHADER_MACRO>());
 
 	ID3D11InputLayout* GetInputLayoutByKey(const std::wstring& Key) const;
 	ID3D11VertexShader* GetVertexShaderByKey(const std::wstring& Key) const;

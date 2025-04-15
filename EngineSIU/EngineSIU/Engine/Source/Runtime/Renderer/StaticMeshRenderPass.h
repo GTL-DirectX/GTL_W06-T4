@@ -29,7 +29,7 @@ public:
 
     void SetLightManager(FLightManager* InLightManager) { LightManager = InLightManager; };
 
-    void PrepareRenderState() const;
+    void PrepareRenderState(EViewModeIndex viewMode);
     
     void UpdatePerObjectConstant(const FMatrix& Model, const FMatrix& View, const FMatrix& Projection, const FVector4& UUIDColor, bool Selected) const;
   
@@ -42,18 +42,12 @@ public:
     void RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const;
 
     // Shader 관련 함수 (생성/해제 등)
-    void CreateShader();
-    void ReleaseShader();
+    void CreateShader(EViewModeIndex viewMode);
+    void ChangeShader(EViewModeIndex evi);
 
-    void ChangeViewMode(EViewModeIndex evi) const;
+    void ChangeViewMode(EViewModeIndex evi);
 private:
     TArray<UStaticMeshComponent*> StaticMeshObjs;
-
-    ID3D11VertexShader* VertexShader;
-    
-    ID3D11PixelShader* PixelShader;
-    
-    ID3D11InputLayout* InputLayout;
     
     uint32 Stride;
 
@@ -64,4 +58,6 @@ private:
     FDXDShaderManager* ShaderManager;
 
     FLightManager* LightManager;
+    // 셰이더 키에 사용할 짧은 모델 이름 배열
+    const wchar_t* shortLightModels[4] = {L"Gouraud", L"Lambert", L"Phong", L"Unlit"};
 };

@@ -17,27 +17,24 @@
 
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "Engine/EditorEngine.h"
+#include "LevelEditor/SLevelEditor.h"
 
 #include "PropertyEditor/ShowFlags.h"
 
 #include "UnrealEd/EditorViewportClient.h"
 
 
-FStaticMeshRenderPass::FStaticMeshRenderPass()
-    : VertexShader(nullptr)
-    , PixelShader(nullptr)
-    , InputLayout(nullptr)
-    , Stride(0)
-    , BufferManager(nullptr)
-    , Graphics(nullptr)
-    , ShaderManager(nullptr)
-    ,LightManager(nullptr)
+FStaticMeshRenderPass::FStaticMeshRenderPass() :
+    Stride(0),
+    BufferManager(nullptr),
+    Graphics(nullptr),
+    ShaderManager(nullptr),
+    LightManager(nullptr)
 {
 }
 
 FStaticMeshRenderPass::~FStaticMeshRenderPass()
 {
-    ReleaseShader();
     if (ShaderManager)
     {
         delete ShaderManager;
@@ -45,7 +42,7 @@ FStaticMeshRenderPass::~FStaticMeshRenderPass()
     }
 }
 
-void FStaticMeshRenderPass::CreateShader()
+void FStaticMeshRenderPass::CreateShader(EViewModeIndex viewMode)
 {
     D3D11_INPUT_ELEMENT_DESC StaticMeshLayoutDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -61,16 +58,39 @@ void FStaticMeshRenderPass::CreateShader()
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
+    TArray<D3D_SHADER_MACRO> defines;
+    // 조명 모델 이름 배열
+    const char* lightModels[] = {"LIGHTING_MODEL_GOURAUD", "LIGHTING_MODEL_LAMBERT", "LIGHTING_MODEL_PHONG"};
+
+    // 모든 조명 모델을 기본적으로 0으로 설정
+    for (const char* model : lightModels) {
+        defines.Add({model, "0"});
+    }
+
+    // 선택된 조명 모델만 1로 변경
+    std::wstring vsKey;
+    std::wstring psKey;
+    
+    if (viewMode >= Lit_Gouraud && viewMode <= Lit_Phong) {
+        int index = viewMode - Lit_Gouraud; // 인덱스 계산 (열거형 값에 따라 조정 필요)
+        defines[index] = {lightModels[index], "1"};
+        // 동적 셰이더 키 생성
+        vsKey = std::wstring(shortLightModels[index]) + L"VS";
+        psKey = std::wstring(shortLightModels[index]) + L"PS";
+    }
+
+    if (viewMode >= Unlit)
+    {
+        vsKey = std::wstring(shortLightModels[Unlit]) + L"VS";
+        psKey = std::wstring(shortLightModels[Unlit]) + L"PS";
+    }
+    
     Stride = sizeof(FStaticMeshVertex);
     ShaderManager->AddVertexShaderAndInputLayout(
-        L"UberLitVS", L"Shaders/UberLit.hlsl", "Uber_VS", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc));
+        vsKey, L"Shaders/UberLit.hlsl", "Uber_VS", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc), defines);
 
     ShaderManager->AddPixelShader(
-        L"UberLitPS", L"Shaders/UberLit.hlsl", "Uber_PS");
-
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"UberLitVS");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"UberLitPS");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"UberLitVS");
+        psKey, L"Shaders/UberLit.hlsl", "Uber_PS", defines);
     /*HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"StaticMeshVertexShader", L"Shaders/StaticMeshVertexShader.hlsl", "mainVS", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc));
 
     hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS");
@@ -80,16 +100,9 @@ void FStaticMeshRenderPass::CreateShader()
     PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
 
     InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");*/
-
-}
-void FStaticMeshRenderPass::ReleaseShader()
-{
-    FDXDBufferManager::SafeRelease(InputLayout);
-    FDXDBufferManager::SafeRelease(PixelShader);
-    FDXDBufferManager::SafeRelease(VertexShader);
 }
 
-void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi) const
+void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi)
 {
     switch (evi)
     {
@@ -111,7 +124,6 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     BufferManager = InBufferManager;
     Graphics = InGraphics;
     ShaderManager = InShaderManager;
-    CreateShader();
 }
 
 void FStaticMeshRenderPass::PrepareRender()
@@ -125,11 +137,27 @@ void FStaticMeshRenderPass::PrepareRender()
     }
 }
 
-void FStaticMeshRenderPass::PrepareRenderState() const
+void FStaticMeshRenderPass::ChangeShader(EViewModeIndex viewMode)
 {
-    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"UberLitVS"), nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"UberLitPS"), nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"UberLitVS"));
+    std::wstring vsKey;
+    std::wstring psKey;
+    if (viewMode >= Lit_Gouraud && viewMode <= Unlit) {
+        int index = viewMode - Lit_Gouraud; // 인덱스 계산 (열거형 값에 따라 조정 필요)
+        // 동적 셰이더 키 생성
+        vsKey = std::wstring(shortLightModels[index]) + L"VS";
+        psKey = std::wstring(shortLightModels[index]) + L"PS";
+    }
+    if (ShaderManager->GetVertexShaderByKey(vsKey) == nullptr || ShaderManager->GetPixelShaderByKey(psKey) == nullptr)
+        CreateShader(viewMode);
+
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(vsKey), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(psKey), nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(vsKey));
+}
+
+void FStaticMeshRenderPass::PrepareRenderState(EViewModeIndex viewMode)
+{
+    ChangeShader(viewMode);
     
     // 상수 버퍼 바인딩 예시
     /*
@@ -149,6 +177,10 @@ void FStaticMeshRenderPass::PrepareRenderState() const
                                   TEXT("FSubMeshConstants"),
                                   TEXT("FTextureConstants")
     };*/
+    TArray<FString> VSBufferKeys = {
+        TEXT("FLightBuffer"),
+    };
+    BufferManager->BindConstantBuffers(VSBufferKeys, 0, EShaderStage::Vertex);
     TArray<FString> PSBufferKeys = {
                               TEXT("FLightBuffer"),
                               TEXT("FLitUnlitConstants"),
@@ -227,7 +259,7 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
 {
     if (!(Viewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))) return;
 
-    PrepareRenderState();
+    PrepareRenderState(Viewport->ViewMode);
 
     for (UStaticMeshComponent* Comp : StaticMeshObjs) {
         if (!Comp || !Comp->GetStaticMesh()) continue;

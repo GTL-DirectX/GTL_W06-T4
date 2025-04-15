@@ -38,7 +38,6 @@ namespace MaterialUtils
             ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
             ID3D11SamplerState* nullSampler[1] = { nullptr };
             Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Diffuse, 1, nullSRV);
-            Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
         }
 
         if (MaterialInfo.TextureSlotMask & MaterialTextureFlags::Ambient) {
@@ -50,7 +49,6 @@ namespace MaterialUtils
             ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
             ID3D11SamplerState* nullSampler[1] = { nullptr };
             Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Ambient, 1, nullSRV);
-            Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
         }
 
         if (MaterialInfo.TextureSlotMask & MaterialTextureFlags::Specular) {
@@ -62,7 +60,6 @@ namespace MaterialUtils
             ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
             ID3D11SamplerState* nullSampler[1] = { nullptr };
             Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Specular, 1, nullSRV);
-            Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
         }
 
         if (MaterialInfo.TextureSlotMask & MaterialTextureFlags::Bump) {
@@ -77,7 +74,6 @@ namespace MaterialUtils
             ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
             ID3D11SamplerState* nullSampler[1] = { nullptr };
             Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Bump, 1, nullSRV);
-            Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
         }
 
         if (MaterialInfo.TextureSlotMask & MaterialTextureFlags::Alpha) {
@@ -89,7 +85,6 @@ namespace MaterialUtils
             ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
             ID3D11SamplerState* nullSampler[1] = { nullptr };
             Graphics->DeviceContext->PSSetShaderResources(ETextureSlot::Alpha, 1, nullSRV);
-            Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
         }
     }
 }
