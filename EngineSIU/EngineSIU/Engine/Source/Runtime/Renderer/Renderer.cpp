@@ -4,6 +4,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "StaticMeshRenderPass.h"
+#include "WorldNormalRenderPass.h"
 #include "BillboardRenderPass.h"
 #include "GizmoRenderPass.h"
 //#include "UpdateLightBufferPass.h"
@@ -25,6 +26,7 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
 
     ShaderManager = new FDXDShaderManager(Graphics->Device);
     StaticMeshRenderPass = new FStaticMeshRenderPass();
+    WorldNormalRenderPass = new FWorldNormalRenderPass();
     BillboardRenderPass = new FBillboardRenderPass();
     GizmoRenderPass = new FGizmoRenderPass();
     //UpdateLightBufferPass = new FUpdateLightBufferPass();
@@ -41,6 +43,7 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     LineRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     DepthBufferDebugPass->Initialize(BufferManager, Graphics, ShaderManager);
     FogRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
+    WorldNormalRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     LightManager->Initialize(BufferManager);
     CreateConstantBuffers();
 }
@@ -113,6 +116,7 @@ void FRenderer::BindGlobalConstantBuffers()
 void FRenderer::PrepareRender()
 {
     StaticMeshRenderPass->PrepareRender();
+    WorldNormalRenderPass->PrepareRender();
     GizmoRenderPass->PrepareRender();
     BillboardRenderPass->PrepareRender();
     //UpdateLightBufferPass->PrepareRender();
@@ -122,6 +126,7 @@ void FRenderer::PrepareRender()
 void FRenderer::ClearRenderArr()
 {
     StaticMeshRenderPass->ClearRenderArr();
+    WorldNormalRenderPass->ClearRenderArr();
     BillboardRenderPass->ClearRenderArr();
     GizmoRenderPass->ClearRenderArr();
     //UpdateLightBufferPass->ClearRenderArr();
@@ -138,7 +143,13 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     BindGlobalConstantBuffers();
     LightManager->UpdateLightBuffer();
 
-    StaticMeshRenderPass->Render(ActiveViewport);
+    if (ActiveViewport->GetViewMode() == EViewModeIndex::WorldNormal) {
+        WorldNormalRenderPass->Render(ActiveViewport);
+    }
+    else 
+    {
+        StaticMeshRenderPass->Render(ActiveViewport);
+    }
     //UpdateLightBufferPass->Render(ActiveViewport);
     BillboardRenderPass->Render(ActiveViewport);
     
