@@ -361,20 +361,14 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
     float3 lighting = float3(1, 1, 1); // 기본 광량 (Unlit fallback)
     
 #if defined(LIGHTING_MODEL_GOURAUD)
-    lighting = Input.color * baseColor;
-    // Gouraud: Vertex에서 조명 계산해 전달받아야 함 (현재 미구현)
-    // lighting = Input.Lighting;
-    
+    lighting = Input.color;
 #elif defined(LIGHTING_MODEL_LAMBERT)
     lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal));
-    
 #elif defined(LIGHTING_MODEL_PHONG)
     lighting = CalculateDefaultLighting(Input.worldPos, normalize(Input.normal));
-    
 #else
     // No lighting, 기본 베이스 색상만 적용
-    //lighting = float3(1, 1, 1);
-    lighting = CalculateDefaultLighting(Input.worldPos, normalize(Input.normal));
+    lighting = float4(1,1,1,1);
 #endif
 
     lighting = saturate(lighting);
