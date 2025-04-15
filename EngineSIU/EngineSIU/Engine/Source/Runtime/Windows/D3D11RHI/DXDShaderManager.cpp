@@ -1,6 +1,7 @@
 #include "DXDShaderManager.h"
 #include <Define.h>
 
+#include "Container/Set.h"
 
 FDXDShaderManager::FDXDShaderManager(ID3D11Device* Device)
     : DXDDevice(Device)
@@ -232,6 +233,9 @@ void FDXDShaderManager::HotReloadShader()
 {
     // ShaderFile 업데이트 여부 확인.
 
+    TSet<std::wstring> UpdatedFileNames;
+    UpdatedFileNames.Empty();
+
     for (auto& [Key, Value] : VertexShaders)
     {
         if (Value.VertexShader && IsOutDated(Value.FileName))
@@ -239,8 +243,7 @@ void FDXDShaderManager::HotReloadShader()
             // UE_LOG(LogLevel::Display, TEXT("Shader Hot Reload"));
             Value.VertexShader->Release();
             AddVertexShaderAndInputLayout(Key, Value.FileName, Value.EntryPoint, Value.Layout.data(), Value.LayoutSize, Value.defines);
-            //Value.VertexShader = GetVertexShaderByKey(Key);
-            UpdateShaderFileTime(Value.FileName);
+            UpdatedFileNames.Add(Value.FileName);
         }
     }
 
@@ -250,9 +253,13 @@ void FDXDShaderManager::HotReloadShader()
         {
             Value.PixelShader->Release();
             AddPixelShader(Key, Value.FileName, Value.EntryPoint, Value.defines);
-            //Value.PixelShader = GetPixelShaderByKey(Key);
-            UpdateShaderFileTime(Value.FileName);
+            UpdatedFileNames.Add(Value.FileName);
         }
+    }
+
+    for (const std::wstring& FileName : UpdatedFileNames)
+    {
+        UpdateShaderFileTime(FileName);
     }
 
 }
@@ -269,7 +276,6 @@ bool FDXDShaderManager::IsOutDated(const std::wstring& FileName)
     {
         if (CurrentTime != ShaderFileTimeMap[FileName])
         {
-            ShaderFileTimeMap[FileName] = CurrentTime;
             return true;
         }
     }
