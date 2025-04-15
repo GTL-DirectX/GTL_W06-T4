@@ -74,12 +74,6 @@ cbuffer TextureConstants : register(b3)
     float2 UVOffset;
     float2 TexturePad0;
 }
-float4 CaculateAmbientLight(FAmbientLightInfo InLightInfo)
-{
-    float4 Result;
-
-    return Result;
-}
 
 struct VS_IN
 {
@@ -246,15 +240,40 @@ VS_OUT Uber_VS(VS_IN input)
     output.tbn = tbn;
     return output;
 }
-float3 CalculateDefaultLighting(float3 worldPos, float3 normal)
+
+float ComputeAttenuation(float distance, float radius, float exponent)
 {
+    return pow(saturate(1.0f - distance / radius), exponent);
+}
+
+float ComputeSpotFactor(float3 lightDir, float3 spotDirection, float inner, float outer)
+{
+    float angle = dot(lightDir, normalize(-spotDirection));
+    return smoothstep(cos(outer), cos(inner), angle);
+}
+
+float3 ComputeBlinnPhong(float3 lightColor, float intensity, float3 lightDir, float3 viewDir, float3 normal, float attenuation)
+{
+    float3 halfDir = normalize(lightDir + viewDir);
+    float diff = max(dot(normal, lightDir), 0.0f);
+    float spec = pow(max(dot(normal, halfDir), 0.0f), 100);
+
+    float3 diffuse = lightColor * intensity * Material.DiffuseColor * diff * attenuation;
+    float3 specular = lightColor * intensity * Material.SpecularColor * spec * attenuation;
+
+    return diffuse + specular;
+}
+
+float3 CalculateBlinnPhongLighting(float3 worldPos, float3 normal)
+{
+    float3 viewDir = normalize(CameraPosition - worldPos);
     float3 result = AmbientLight.Color * AmbientLight.Intensity * Material.AmbientColor;
 
     // Directional Light
     {
         float3 lightDir = normalize(-DirectionalLight.Direction);
-        float diff = max(dot(normal, lightDir), 0.0f);
-        result += DirectionalLight.Color * DirectionalLight.Intensity * Material.DiffuseColor * diff;
+        float atten = 1.0f; // 무한 거리 감쇠 없음
+        result += ComputeBlinnPhong(DirectionalLight.Color, DirectionalLight.Intensity, lightDir, viewDir, normal, atten);
     }
 
     // Point Lights
@@ -264,13 +283,11 @@ float3 CalculateDefaultLighting(float3 worldPos, float3 normal)
         float distance = length(toLight);
         if (distance > PointLights[i].AttenuationRadius)
             continue;
-        float radius = PointLights[i].AttenuationRadius;
-        float exp = PointLights[i].LightFalloffExponent;
-        float atten = pow(saturate(1 - distance / radius), exp);
-        float3 lightDir = normalize(toLight);
 
-        float diff = max(dot(normal, lightDir), 0.0f);
-        result += PointLights[i].Color * PointLights[i].Intensity * Material.DiffuseColor * diff * atten;
+        float3 lightDir = normalize(toLight);
+        float atten = ComputeAttenuation(distance, PointLights[i].AttenuationRadius, PointLights[i].LightFalloffExponent);
+
+        result += ComputeBlinnPhong(PointLights[i].Color, PointLights[i].Intensity, lightDir, viewDir, normal, atten);
     }
 
     // Spot Lights
@@ -282,19 +299,11 @@ float3 CalculateDefaultLighting(float3 worldPos, float3 normal)
             continue;
 
         float3 lightDir = normalize(toLight);
-        float diff = max(dot(normal, lightDir), 0.0f);
-        float3 viewDir = normalize(CameraPosition - worldPos);
-        float3 halfDir = normalize(lightDir + viewDir);
-        float spec = pow(max(dot(normal, halfDir), 0.0f), 16);
+        float atten = ComputeAttenuation(distance, SpotLights[i].AttenuationRadius, SpotLights[i].LightFalloffExponent);
+        float spotFactor = ComputeSpotFactor(lightDir, SpotLights[i].Direction, SpotLights[i].InnerConeAngle, SpotLights[i].OuterConeAngle);
+        float finalAtten = atten * spotFactor;
 
-        float angle = dot(lightDir, normalize(-SpotLights[i].Direction));
-        float inner = cos(SpotLights[i].InnerConeAngle);
-        float outer = cos(SpotLights[i].OuterConeAngle);
-        float spot = smoothstep(outer, inner, angle);
-        float att = pow(saturate(1.0f - distance / SpotLights[i].AttenuationRadius), SpotLights[i].LightFalloffExponent);
-
-        result += SpotLights[i].Color * SpotLights[i].Intensity * Material.DiffuseColor * diff * spot * att;
-        result += SpotLights[i].Color * Material.SpecularColor * spec * spot * att;
+        result += ComputeBlinnPhong(SpotLights[i].Color, SpotLights[i].Intensity, lightDir, viewDir, normal, finalAtten);
     }
 
     return result;
@@ -360,9 +369,7 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
     float3 albedo = DiffuseTexture.Sample(Sampler, Input.texcoord).rgb;
     //float3 baseColor = any(albedo != float3(0, 0, 0)) ? albedo : Material.DiffuseColor;
     float3 baseColor =  Material.DiffuseColor;
-    baseColor = any(albedo.rgb != float3(0, 0, 0))
-                       ? albedo.rgb
-                       : baseColor;
+    baseColor = any(albedo.rgb != float3(0, 0, 0)) ? albedo.rgb : baseColor;
     float3 lighting = float3(1, 1, 1); // 기본 광량 (Unlit fallback)
     
 #if defined(LIGHTING_MODEL_GOURAUD)
@@ -370,7 +377,7 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
 #elif defined(LIGHTING_MODEL_LAMBERT)
     lighting = CalculateLambertLighting(Input.worldPos, normalize(Input.normal),baseColor);
 #elif defined(LIGHTING_MODEL_PHONG)
-    lighting = CalculateDefaultLighting(Input.worldPos, normalize(Input.normal));
+    lighting = CalculateBlinnPhongLighting(Input.worldPos, normalize(Input.normal));
 #else
     // No lighting, 기본 베이스 색상만 적용
     lighting = float4(1,1,1,1);
