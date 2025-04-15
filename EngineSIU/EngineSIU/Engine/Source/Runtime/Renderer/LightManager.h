@@ -3,6 +3,7 @@
 #include "LightType.h"
 #include "Container/Array.h"
 
+class UPrimitiveDrawBatch;
 class FDXDBufferManager;
 
 class FLightManager
@@ -12,6 +13,7 @@ public:
 
     // GPU로 상수버퍼 업로드
     void UpdateLightBuffer();
+    void VisualizeLights(UPrimitiveDrawBatch* PrimitiveBatch);
 
 private:
     void CollectLights();
