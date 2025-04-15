@@ -7,7 +7,7 @@
 #include "Components/SkySphereComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Actors/HeightFogActor.h"
-#include "Actors/LightActor.h"
+#include "Actors/Light/AmbientLight.h"
 #include "Components/Light/LightComponent.h"
 
 UWorld* UWorld::CreateWorld(UObject* InOuter, const EWorldType InWorldType, const FString& InWorldName)
@@ -16,9 +16,8 @@ UWorld* UWorld::CreateWorld(UObject* InOuter, const EWorldType InWorldType, cons
     NewWorld->WorldName = InWorldName;
     NewWorld->WorldType = InWorldType;
     NewWorld->InitializeNewWorld();
-    ALight* LightActor = NewWorld->SpawnActor<ALight>();
+    AAmbientLight* LightActor = NewWorld->SpawnActor<AAmbientLight>();
     LightActor->SetActorLabel(TEXT("OBJ_AmbientLight"));
-    LightActor->SetLightType(ELightType::Ambient);
     LightActor->GetLightComponent()->SetIntensity(0.1f);
     return NewWorld;
 }
