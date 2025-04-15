@@ -1,4 +1,5 @@
 #include "DXDShaderManager.h"
+#include <Define.h>
 
 
 FDXDShaderManager::FDXDShaderManager(ID3D11Device* Device)
@@ -10,22 +11,22 @@ FDXDShaderManager::FDXDShaderManager(ID3D11Device* Device)
 
 void FDXDShaderManager::ReleaseAllShader()
 {
-    for (auto& [Key, Shader] : VertexShaders)
+    for (auto& [Key, Value] : VertexShaders)
     {
-        if (Shader)
+        if (Value.VertexShader)
         {
-            Shader->Release();
-            Shader = nullptr;
+            Value.VertexShader->Release();
+            Value.VertexShader = nullptr;
         }
     }
     VertexShaders.Empty();
 
-    for (auto& [Key, Shader] : PixelShaders)
+    for (auto& [Key, Value] : PixelShaders)
     {
-        if (Shader)
+        if (Value.PixelShader)
         {
-            Shader->Release();
-            Shader = nullptr;
+            Value.PixelShader->Release();
+            Value.PixelShader = nullptr;
         }
     }
     PixelShaders.Empty();
@@ -57,7 +58,17 @@ HRESULT FDXDShaderManager::AddPixelShader(const std::wstring& Key, const std::ws
     if (FAILED(hr))
         return hr;
 
-    PixelShaders[Key] = NewPixelShader;
+    FPixelShaderInfo NewPixelShaderInfo;
+    NewPixelShaderInfo.FileName = FileName;
+    NewPixelShaderInfo.EntryPoint = EntryPoint;
+    NewPixelShaderInfo.PixelShader = NewPixelShader;
+
+    PixelShaders[Key] = NewPixelShaderInfo;
+
+    if (!ShaderFileTimeMap.Contains(FileName))
+    {
+        ShaderFileTimeMap.Add(FileName, std::filesystem::last_write_time(FileName));
+    }
 
     return S_OK;
 }
@@ -95,7 +106,19 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
         return hr;
     }
 
-    VertexShaders[Key] = NewVertexShader;
+    FVertexShaderInfo NewVertexShaderInfo;
+    NewVertexShaderInfo.FileName = FileName;
+    NewVertexShaderInfo.EntryPoint = EntryPoint;
+    NewVertexShaderInfo.VertexShader = NewVertexShader;
+    NewVertexShaderInfo.Layout = {};
+    NewVertexShaderInfo.LayoutSize = 0;
+
+    VertexShaders[Key] = NewVertexShaderInfo;
+
+    if (!ShaderFileTimeMap.Contains(FileName))
+    {
+        ShaderFileTimeMap.Add(FileName, std::filesystem::last_write_time(FileName));
+    }
 
     VertexShaderCSO->Release();
 
@@ -107,7 +130,7 @@ HRESULT FDXDShaderManager::AddInputLayout(const std::wstring& Key, const D3D11_I
     return S_OK;
 }
 
-HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize)
+HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize)
 {
     UINT shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
@@ -146,8 +169,20 @@ HRESULT FDXDShaderManager::AddVertexShaderAndInputLayout(const std::wstring& Key
         return hr;
     }
 
-    VertexShaders[Key] = NewVertexShader;
+    FVertexShaderInfo NewVertexShaderInfo;
+    NewVertexShaderInfo.FileName = FileName;
+    NewVertexShaderInfo.EntryPoint = EntryPoint;
+    NewVertexShaderInfo.VertexShader = NewVertexShader;
+    NewVertexShaderInfo.Layout.assign(Layout, Layout + LayoutSize);
+    NewVertexShaderInfo.LayoutSize = LayoutSize;
+
+    VertexShaders[Key] = NewVertexShaderInfo;
     InputLayouts[Key] = NewInputLayout;
+
+    if (!ShaderFileTimeMap.Contains(FileName))
+    {
+        ShaderFileTimeMap.Add(FileName, std::filesystem::last_write_time(FileName));
+    }
 
     VertexShaderCSO->Release();
 
@@ -167,7 +202,7 @@ ID3D11VertexShader* FDXDShaderManager::GetVertexShaderByKey(const std::wstring& 
 {
     if (VertexShaders.Contains(Key))
     {
-        return *VertexShaders.Find(Key);
+        return VertexShaders.Find(Key)->VertexShader;
     }
     return nullptr;
 }
@@ -176,7 +211,61 @@ ID3D11PixelShader* FDXDShaderManager::GetPixelShaderByKey(const std::wstring& Ke
 {
     if (PixelShaders.Contains(Key))
     {
-        return *PixelShaders.Find(Key);
+        return PixelShaders.Find(Key)->PixelShader;
     }
     return nullptr;
+}
+
+void FDXDShaderManager::HotReloadShader()
+{
+    // ShaderFile 업데이트 여부 확인.
+
+    for (auto& [Key, Value] : VertexShaders)
+    {
+        if (Value.VertexShader && IsOutDated(Value.FileName))
+        {
+            // UE_LOG(LogLevel::Display, TEXT("Shader Hot Reload"));
+            Value.VertexShader->Release();
+            AddVertexShaderAndInputLayout(Key, Value.FileName, Value.EntryPoint, Value.Layout.data(), Value.LayoutSize);
+            //Value.VertexShader = GetVertexShaderByKey(Key);
+            UpdateShaderFileTime(Value.FileName);
+        }
+    }
+
+    for (auto& [Key, Value] : PixelShaders)
+    {
+        if (Value.PixelShader && IsOutDated(Value.FileName))
+        {
+            Value.PixelShader->Release();
+            AddPixelShader(Key, Value.FileName, Value.EntryPoint);
+            //Value.PixelShader = GetPixelShaderByKey(Key);
+            UpdateShaderFileTime(Value.FileName);
+        }
+    }
+
+}
+
+bool FDXDShaderManager::IsOutDated(const std::wstring& FileName)
+{
+    if (!std::filesystem::exists(FileName)) {
+        return false;
+    }
+
+    std::filesystem::file_time_type CurrentTime = std::filesystem::last_write_time(FileName);
+
+    if (ShaderFileTimeMap.Contains(FileName))
+    {
+        if (CurrentTime != ShaderFileTimeMap[FileName])
+        {
+            ShaderFileTimeMap[FileName] = CurrentTime;
+            return true;
+        }
+    }
+    return false;
+}
+
+void FDXDShaderManager::UpdateShaderFileTime(const std::wstring& FileName)
+{
+    std::filesystem::file_time_type CurrentTime = std::filesystem::last_write_time(FileName);
+    ShaderFileTimeMap[FileName] = CurrentTime;
 }

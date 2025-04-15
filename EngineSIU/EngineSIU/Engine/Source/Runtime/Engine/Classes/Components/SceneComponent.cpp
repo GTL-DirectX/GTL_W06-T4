@@ -36,6 +36,7 @@ void USceneComponent::TickComponent(float DeltaTime)
 
 int USceneComponent::CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance)
 {
+    // TODO: 나중에 지워도 될듯
     int nIntersections = 0;
     return nIntersections;
 }
@@ -195,7 +196,7 @@ void USceneComponent::SetupAttachment(USceneComponent* InParent)
         && InParent != nullptr                                    // InParent가 유효한 포인터 이며
         && (
             AttachParent == nullptr                               // AttachParent도 유효하며
-            || !AttachParent->AttachChildren.Contains(this)  // 한번이라도 SetupAttachment가 호출된적이 없는 경우
+            // || !AttachParent->AttachChildren.Contains(this)  // 한번이라도 SetupAttachment가 호출된적이 없는 경우 // Register가 있게되면 유용한 방식.
         ) 
     ) {
         AttachParent = InParent;
@@ -203,4 +204,14 @@ void USceneComponent::SetupAttachment(USceneComponent* InParent)
         // TODO: .AddUnique의 실행 위치를 RegisterComponent로 바꾸거나 해야할 듯
         InParent->AttachChildren.AddUnique(this);
     }
+}
+
+void USceneComponent::DestroyComponent()
+{
+    if (AttachParent)
+    {
+        AttachParent->AttachChildren.Remove(this);
+        AttachParent = nullptr;
+    }
+    Super::DestroyComponent();
 }

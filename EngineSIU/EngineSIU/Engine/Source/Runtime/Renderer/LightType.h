@@ -76,8 +76,8 @@ struct FSpotLightInfo
 // 최종 GPU용 조합 구조체
 struct FLightBuffer
 {
-    FAmbientLightInfo AmbientLight;
-    FDirectionalLightInfo DirectionalLight;
-    FPointLightInfo PointLights[MAX_POINT_LIGHTS];
-    FSpotLightInfo SpotLights[MAX_SPOT_LIGHTS];
+    FAmbientLightInfo AmbientLightInfo;
+    FDirectionalLightInfo DirectionalLightInfo;
+    FPointLightInfo PointLightInfos[MAX_POINT_LIGHTS];
+    FSpotLightInfo SpotLightInfos[MAX_SPOT_LIGHTS];
 };

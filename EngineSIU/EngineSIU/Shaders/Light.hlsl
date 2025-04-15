@@ -95,6 +95,8 @@ float4 PointLight(int nIndex, float3 vPosition, float3 vNormal)
         fSpecularFactor = pow(max(dot(normalize(vNormal), vHalf), 0.0f), 1);
     }
 
+    
+    
     float fAttenuationFactor = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
    
     float3 lit = (gcGlobalAmbientLight * Material.AmbientColor.rgb) +

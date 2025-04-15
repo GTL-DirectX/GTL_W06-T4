@@ -3,7 +3,10 @@
 #include "World/World.h"
 
 #include "Actors/Player.h"
-#include "Actors/LightActor.h"
+#include "Actors/Light/AmbientLight.h"
+#include "Actors/Light/DirectionalLight.h"
+#include "Actors/Light/PointLight.h"
+#include "Actors/Light/SpotLight.h"
 #include "Actors/FireballActor.h"
 
 #include "Components/Light/LightComponent.h"
@@ -302,30 +305,26 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 }
                 case OBJ_PointLight:
                 {
-                    ALight* LightActor = World->SpawnActor<ALight>();
+                    APointLight* LightActor = World->SpawnActor<APointLight>();
                     LightActor->SetActorLabel(TEXT("OBJ_PointLight"));
-                    LightActor->SetLightType(ELightType::Point);
                     break;
                 }
                 case OBJ_DirectionalLight:
                 {
-                    ALight* LightActor = World->SpawnActor<ALight>();
+                    ADirectionalLight* LightActor = World->SpawnActor<ADirectionalLight>();
                     LightActor->SetActorLabel(TEXT("OBJ_DirectionalLight"));
-                    LightActor->SetLightType(ELightType::Directional);
                     break;
                 }
                 case OBJ_SpotLight:
                 {
-                    ALight* LightActor = World->SpawnActor<ALight>();
+                    ASpotLight* LightActor = World->SpawnActor<ASpotLight>();
                     LightActor->SetActorLabel(TEXT("OBJ_SpotLight"));
-                    LightActor->SetLightType(ELightType::Spot);
                     break;
                 }
                 /*case OBJ_AmbientLight:
                 {
-                    ALight* LightActor = World->SpawnActor<ALight>();
+                    AAmbientLight* LightActor = World->SpawnActor<AAmbientLight>();
                     LightActor->SetActorLabel(TEXT("OBJ_AmbientLight"));
-                    LightActor->SetLightType(ELightType::Ambient);
                     break;
                 }*/
 

@@ -95,9 +95,9 @@ void FGizmoRenderPass::ClearRenderArr()
 
 void FGizmoRenderPass::PrepareRenderState() const
 {
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"GizmoVertexShader"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"GizmoPixelShader"), nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"GizmoVertexShader"));
 
     // 상수 버퍼 바인딩 예시
     /*ID3D11Buffer* PerObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FPerObjectConstantBuffer"));

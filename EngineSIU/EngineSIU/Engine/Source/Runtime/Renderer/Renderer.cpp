@@ -159,3 +159,8 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
 
     ClearRenderArr();
 }
+
+void FRenderer::HotReload()
+{
+    ShaderManager->HotReloadShader();
+}

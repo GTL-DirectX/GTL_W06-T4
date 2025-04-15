@@ -99,8 +99,8 @@ void FDepthBufferDebugPass::PrepareRenderState()
     Graphics->DeviceContext->OMSetRenderTargets(1, &Graphics->FrameBufferRTV, nullptr);
     Graphics->DeviceContext->OMSetDepthStencilState(DepthStateDisable, 0);
 
-    Graphics->DeviceContext->VSSetShader(SpriteVertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(DepthBufferPixelShader, nullptr, 0);
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"DepthBufferVertexShader"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"DepthBufferPixelShader"), nullptr, 0);
 
     // SRV & Sampler 바인딩
     Graphics->DeviceContext->PSSetShaderResources(0, 1, &DepthBufferSRV);
@@ -164,7 +164,7 @@ void FDepthBufferDebugPass::RenderDepthBuffer(const std::shared_ptr<FEditorViewp
 
     Graphics->DeviceContext->IASetVertexBuffers(0, 1, &VertexInfo.VertexBuffer, &VertexInfo.Stride, &offset);
     Graphics->DeviceContext->IASetIndexBuffer(IndexInfo.IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
+    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"DepthBufferVertexShader"));
 
     Graphics->DeviceContext->DrawIndexed(6, 0, 0);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState, 0);

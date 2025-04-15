@@ -127,18 +127,21 @@ void FStaticMeshRenderPass::PrepareRender()
 
 void FStaticMeshRenderPass::PrepareRenderState() const
 {
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
-
+    Graphics->DeviceContext->VSSetShader(ShaderManager->GetVertexShaderByKey(L"UberLitVS"), nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"UberLitPS"), nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"UberLitVS"));
+    
     // 상수 버퍼 바인딩 예시
-    /*ID3D11Buffer* PerObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FPerObjectConstantBuffer"));
+    /*
+    ID3D11Buffer* PerObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FPerObjectConstantBuffer"));
     ID3D11Buffer* CameraConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FCameraConstantBuffer"));
+    ID3D11Buffer* LightConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FLightBuffer"));
     Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &PerObjectBuffer);
+    Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &CameraConstantBuffer);
+    Graphics->DeviceContext->VSSetConstantBuffers(2, 1, &LightConstantBuffer);
     Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &PerObjectBuffer);
-    Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &CameraConstantBuffer);*/
 
-    /*TArray<FString> PSBufferKeys = {
+    TArray<FString> PSBufferKeys = {
                                   TEXT("FCameraConstantBuffer"),
                                   TEXT("FLightBuffer"),
                                   TEXT("FMaterialConstants"),

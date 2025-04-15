@@ -3,6 +3,11 @@
 #include "Components/Light/LightComponent.h"
 #include "UObject/UObjectIterator.h"
 
+#include "Components/Light/AmbientLightComponent.h"
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
+
 void FLightManager::Initialize(FDXDBufferManager* InBufferManager)
 {
     BufferManager = InBufferManager;
@@ -11,8 +16,8 @@ void FLightManager::Initialize(FDXDBufferManager* InBufferManager)
 void FLightManager::CollectLights()
 {
     // 초기화
-    AmbientLight = {};
-    DirectionalLight = {};
+    AmbientLightInfo = {};
+    DirectionalLightInfo = {};
     PointLights.Empty();
     SpotLights.Empty();
 
@@ -21,31 +26,29 @@ void FLightManager::CollectLights()
         if (!Light->IsVisible())
             continue;
 
-        switch (Light->GetLightType())
+        if (UAmbientLightComponent* AmbientLight = Cast<UAmbientLightComponent>(Light))
         {
-        case ELightType::Ambient:
-            Light->UploadLightInfo(&AmbientLight);
-            break;
-
-        case ELightType::Directional:
-            Light->UploadLightInfo(&DirectionalLight);
-            break;
-
-        case ELightType::Point:
+            AmbientLight->UploadLightInfo(&AmbientLightInfo);
+            continue;
+        }
+        else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
+        {
+            DirectionalLight->UploadLightInfo(&DirectionalLightInfo);
+            continue;
+        }
+        else if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
         {
             FPointLightInfo Info = {};
-            Light->UploadLightInfo(&Info);
+            PointLight->UploadLightInfo(&Info);
             PointLights.Add(Info);
-            break;
+            continue;
         }
-
-        case ELightType::Spot:
+        else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
         {
             FSpotLightInfo Info = {};
-            Light->UploadLightInfo(&Info);
+            SpotLight->UploadLightInfo(&Info);
             SpotLights.Add(Info);
-            break;
-        }
+            continue;
         }
     }
 }
@@ -55,17 +58,17 @@ void FLightManager::UpdateLightBuffer()
     CollectLights();
 
     FLightBuffer LightBuffer = {};
-    LightBuffer.AmbientLight = AmbientLight;
-    LightBuffer.DirectionalLight = DirectionalLight;
+    LightBuffer.AmbientLightInfo = AmbientLightInfo;
+    LightBuffer.DirectionalLightInfo = DirectionalLightInfo;
 
     for (int i = 0; i < FMath::Min(PointLights.Num(), MAX_POINT_LIGHTS); ++i)
     {
-        LightBuffer.PointLights[i] = PointLights[i];
+        LightBuffer.PointLightInfos[i] = PointLights[i];
     }
 
     for (int i = 0; i < FMath::Min(SpotLights.Num(), MAX_SPOT_LIGHTS); ++i)
     {
-        LightBuffer.SpotLights[i] = SpotLights[i];
+        LightBuffer.SpotLightInfos[i] = SpotLights[i];
     }
 
     BufferManager->UpdateConstantBuffer(TEXT("FLightBuffer"), LightBuffer);

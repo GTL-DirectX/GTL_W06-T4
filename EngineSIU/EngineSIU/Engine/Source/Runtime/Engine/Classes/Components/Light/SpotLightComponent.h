@@ -8,8 +8,6 @@ class USpotLightComponent : public ULightComponent
 public:
     USpotLightComponent() = default;
 
-    virtual ELightType GetLightType() const override { return ELightType::Spot; }
-
     virtual void UploadLightInfo(void* OutInfo) const override
     {
         FSpotLightInfo* Info = reinterpret_cast<FSpotLightInfo*>(OutInfo);

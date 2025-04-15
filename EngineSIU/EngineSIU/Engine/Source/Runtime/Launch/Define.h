@@ -11,12 +11,9 @@
 #include "Math/Matrix.h"
 
 
-#define UE_LOG Console::GetInstance().AddLog
-
 #define _TCHAR_DEFINED
 #include <d3d11.h>
 
-#include "UserInterface/Console.h"
 #include <Math/Color.h>
 
 struct FStaticMeshVertex
@@ -80,6 +77,7 @@ struct FObjMaterialInfo
 
     bool bHasTexture = false;  // Has Texture?
     bool bTransparent = false; // Has alpha channel?
+    uint8 TextureSlotMask = 0;
 
     FVector Diffuse;  // Kd : Diffuse (Vector4)
     FVector Specular;  // Ks : Specular (Vector) 
@@ -322,6 +320,7 @@ struct FMaterialConstants {
     FVector EmmisiveColor;
     float MaterialPad0;
 
+    uint8 TextureSlotMask;
 };
 
 /*struct FPerObjectConstantBuffer {
