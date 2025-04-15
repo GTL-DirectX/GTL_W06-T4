@@ -57,3 +57,6 @@ private:
     FObjMaterialInfo tempMaterialInfo;
     bool IsCreateMaterial;
 };
+//나중에 다른 곳으로 옮기기
+float GetAdaptiveDragSpeed(float value);
+bool DrawFloatWithSliderAndDrag(const char* label, float& value, float min, float max, const char* format = "%.2f");
