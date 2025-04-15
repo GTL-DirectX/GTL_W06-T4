@@ -135,7 +135,13 @@ void FStaticMeshRenderPass::ChangeShader(EViewModeIndex viewMode)
         // 동적 셰이더 키 생성
         vsKey = std::wstring(shortLightModels[index]) + L"VS";
         psKey = std::wstring(shortLightModels[index]) + L"PS";
-    }
+	}
+	else 
+	{
+		vsKey = L"UnlitVS";
+		psKey = L"UnlitPS";
+	}
+
     if (ShaderManager->GetVertexShaderByKey(vsKey) == nullptr || ShaderManager->GetPixelShaderByKey(psKey) == nullptr)
         CreateShader(viewMode);
 

@@ -11,6 +11,7 @@ enum EViewModeIndex : uint8
     Unlit,
     Wireframe,
     SceneDepth,
+    WorldNormal,
     Max
 };
 

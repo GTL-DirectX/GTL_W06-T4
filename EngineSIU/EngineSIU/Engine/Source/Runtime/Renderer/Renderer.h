@@ -23,6 +23,7 @@ class FDXDShaderManager;
 class FEditorViewportClient;
 
 class FStaticMeshRenderPass;
+class FWorldNormalRenderPass;
 class FBillboardRenderPass;
 class FGizmoRenderPass;
 //class FUpdateLightBufferPass;
@@ -71,6 +72,7 @@ public:
     FLightManager* LightManager;
 
     FStaticMeshRenderPass* StaticMeshRenderPass = nullptr;
+    FWorldNormalRenderPass* WorldNormalRenderPass = nullptr;
     FBillboardRenderPass* BillboardRenderPass = nullptr;
     FGizmoRenderPass* GizmoRenderPass = nullptr;
     //FUpdateLightBufferPass* UpdateLightBufferPass = nullptr;

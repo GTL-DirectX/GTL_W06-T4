@@ -423,11 +423,10 @@ void ControlEditorPanel::CreateFlagButton() const
         ViewModes[i] = &ViewMode;
     }*/
 
-    const char* ViewModeNames[] = { "Lit_Gouraud", "Lit_Lambert", "Lit_Phong", "Unlit", "Wireframe", "SceneDepth" };
+    const char* ViewModeNames[] = { "Lit_Gouraud", "Lit_Lambert", "Lit_Phong", "Unlit", "Wireframe", "SceneDepth", "WorldNormal"};
 
     int rawViewMode = (int)ActiveViewport->GetViewMode();
-    int safeIndex = (rawViewMode >= 0) ? (rawViewMode % 4) : 0;
-    FString ViewModeControl = ViewModeNames[safeIndex];
+    FString ViewModeControl = ViewModeNames[rawViewMode];
 
     ImVec2 ViewModeTextSize = ImGui::CalcTextSize(GetData(ViewModeControl));
 
