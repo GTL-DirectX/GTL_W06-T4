@@ -124,17 +124,17 @@ void PropertyEditorPanel::Render()
                 float Intensity = lightObj->GetIntensity();
                 /*if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 10000.0f, "%1.f"))
                     lightObj->SetIntensity(Intensity);*/
-                if (DrawFloatWithSliderAndDrag("Intensity", Intensity, 0.0f, 10000.0f))
+                if (FImGuiWidget::DrawFloatWithSliderAndDrag("Intensity", Intensity, 0.0f, 10000.0f))
                     lightObj->SetIntensity(Intensity);
                 // ✅ Point Light 전용
                 if (auto* PointLight = dynamic_cast<UPointLightComponent*>(lightObj))
                 {
                     float Falloff = PointLight->GetFalloff();
-                    if (DrawFloatWithSliderAndDrag("Falloff", Falloff, 0.1f, 10.0f, "%.2f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Falloff", Falloff, 0.1f, 10.0f, "%.2f"))
                         PointLight->SetFalloff(Falloff);
 
                     float Radius = PointLight->GetAttenuationRadius();
-                    if (DrawFloatWithSliderAndDrag("Attenuation Radius", Radius, 0.01f, 10000.f, "%.1f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Attenuation Radius", Radius, 0.01f, 10000.f, "%.1f"))
                         PointLight->SetAttenuationRadius(Radius);
                 }
 
@@ -142,19 +142,19 @@ void PropertyEditorPanel::Render()
                 if (auto* SpotLight = dynamic_cast<USpotLightComponent*>(lightObj))
                 {
                     float Falloff = SpotLight->GetFalloff();
-                    if (DrawFloatWithSliderAndDrag("Falloff", Falloff, 0.1f, 10.0f, "%.2f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Falloff", Falloff, 0.1f, 10.0f, "%.2f"))
                         SpotLight->SetFalloff(Falloff);
 
                     float Radius = SpotLight->GetAttenuationRadius();
-                    if (DrawFloatWithSliderAndDrag("Attenuation Radius", Radius, 0.01f, 10000.f, "%.1f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Attenuation Radius", Radius, 0.01f, 10000.f, "%.1f"))
                         SpotLight->SetAttenuationRadius(Radius);
 
                     float Inner = SpotLight->GetInnerConeAngle();
-                    if (DrawFloatWithSliderAndDrag("Inner Cone", Inner, 0.0f, 1.57f, "%.2f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Inner Cone", Inner, 0.0f, 1.57f, "%.2f"))
                         SpotLight->SetInnerConeAngle(Inner);
 
                     float Outer = SpotLight->GetOuterConeAngle();
-                    if (DrawFloatWithSliderAndDrag("Outer Cone", Outer, 0.0f, 1.57f, "%.2f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Outer Cone", Outer, 0.0f, 1.57f, "%.2f"))
                         SpotLight->SetOuterConeAngle(Outer);
                 }
 
@@ -756,35 +756,4 @@ void PropertyEditorPanel::OnResize(HWND hWnd)
     GetClientRect(hWnd, &clientRect);
     Width = clientRect.right - clientRect.left;
     Height = clientRect.bottom - clientRect.top;
-}
-float GetAdaptiveDragSpeed(float value)
-{
-    if (value == 0.0f)
-        return 0.01f;
-    value = abs(value);
-    float exponent = floor(log10(std::max(value, 0.0001f)));
-    return pow(10.0f, exponent - 1); // 한 단계 더 미세하게 조절하고 싶으면 -1 유지
-}
-
-bool DrawFloatWithSliderAndDrag(const char* label, float& value, float min, float max, const char* format)
-{
-    bool bChanged = false;
-
-    // 레이블 한 줄 위에 출력
-    ImGui::Text("%s", label);
-
-    float dragSpeed = GetAdaptiveDragSpeed(value);
-
-    // 한 줄 아래 수평 정렬
-    ImGui::PushItemWidth(100);
-    bChanged |= ImGui::DragFloat(std::string("##drag_").append(label).c_str(), &value, dragSpeed, min, max, format);
-    ImGui::PopItemWidth();
-
-    ImGui::SameLine();
-
-    ImGui::PushItemWidth(200);
-    bChanged |= ImGui::SliderFloat(std::string("##slider_").append(label).c_str(), &value, min, max, format);
-    ImGui::PopItemWidth();
-
-    return bChanged;
 }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <string>
 
 struct FVector;
@@ -9,4 +9,8 @@ struct FImGuiWidget
     static void DrawVec3Control(const std::string& label, FVector& values, float resetValue = 0.0f, float columnWidth = 100.0f);
 
     static void DrawRot3Control(const std::string& label, FRotator& values, float resetValue = 0.0f, float columnWidth = 100.0f);
+
+    static float GetAdaptiveDragSpeed(float value);
+
+    static bool DrawFloatWithSliderAndDrag(const char* label, float& value, float min, float max, const char* format = "%.2f");
 };
