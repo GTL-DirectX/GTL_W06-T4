@@ -122,18 +122,19 @@ void PropertyEditorPanel::Render()
                     [&](FLinearColor c) { lightObj->SetSpecularColor(c); });
 
                 float Intensity = lightObj->GetIntensity();
-                if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 10000.0f, "%1.f"))
+                /*if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 10000.0f, "%1.f"))
+                    lightObj->SetIntensity(Intensity);*/
+                if (FImGuiWidget::DrawFloatWithSliderAndDrag("Intensity", Intensity, 0.0f, 10000.0f))
                     lightObj->SetIntensity(Intensity);
-
                 // ✅ Point Light 전용
                 if (auto* PointLight = dynamic_cast<UPointLightComponent*>(lightObj))
                 {
                     float Falloff = PointLight->GetFalloff();
-                    if (ImGui::SliderFloat("Falloff", &Falloff, 0.1f, 10.0f, "%.2f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Falloff", Falloff, 0.1f, 10.0f, "%.2f"))
                         PointLight->SetFalloff(Falloff);
 
                     float Radius = PointLight->GetAttenuationRadius();
-                    if (ImGui::SliderFloat("Attenuation Radius", &Radius, 0.01f, 10000.f, "%.1f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Attenuation Radius", Radius, 0.01f, 10000.f, "%.1f"))
                         PointLight->SetAttenuationRadius(Radius);
                 }
 
@@ -141,19 +142,19 @@ void PropertyEditorPanel::Render()
                 if (auto* SpotLight = dynamic_cast<USpotLightComponent*>(lightObj))
                 {
                     float Falloff = SpotLight->GetFalloff();
-                    if (ImGui::SliderFloat("Falloff", &Falloff, 0.1f, 10.0f, "%.2f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Falloff", Falloff, 0.1f, 10.0f, "%.2f"))
                         SpotLight->SetFalloff(Falloff);
 
                     float Radius = SpotLight->GetAttenuationRadius();
-                    if (ImGui::SliderFloat("Attenuation Radius", &Radius, 0.01f, 10000.f, "%.1f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Attenuation Radius", Radius, 0.01f, 10000.f, "%.1f"))
                         SpotLight->SetAttenuationRadius(Radius);
 
                     float Inner = SpotLight->GetInnerConeAngle();
-                    if (ImGui::SliderFloat("Inner Cone", &Inner, 0.0f, 1.57f, "%.2f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Inner Cone", Inner, 0.0f, 1.57f, "%.2f"))
                         SpotLight->SetInnerConeAngle(Inner);
 
                     float Outer = SpotLight->GetOuterConeAngle();
-                    if (ImGui::SliderFloat("Outer Cone", &Outer, 0.0f, 1.57f, "%.2f"))
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Outer Cone", Outer, 0.0f, 1.57f, "%.2f"))
                         SpotLight->SetOuterConeAngle(Outer);
                 }
 
