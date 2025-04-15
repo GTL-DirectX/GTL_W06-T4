@@ -1,4 +1,3 @@
-// WorldNormalRenderPass.h
 #pragma once
 
 #include "D3D11RHI/GraphicDevice.h"
@@ -27,10 +26,6 @@ private:
     FGraphicsDevice* Graphics;
     FDXDBufferManager* BufferManager;
     FDXDShaderManager* ShaderManager;
-
-    ID3D11VertexShader* VertexShader;
-    ID3D11PixelShader* PixelShader;
-    ID3D11InputLayout* InputLayout;
 
     UINT Stride;
     TArray<UStaticMeshComponent*> StaticMeshObjs;

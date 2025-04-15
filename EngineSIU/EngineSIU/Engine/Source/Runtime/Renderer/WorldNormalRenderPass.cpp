@@ -1,4 +1,3 @@
-// WorldNormalRenderPass.cpp
 #include "WorldNormalRenderPass.h"
 #include "EngineLoop.h"
 #include "World/World.h"
@@ -15,15 +14,11 @@ FWorldNormalRenderPass::FWorldNormalRenderPass()
     , BufferManager(nullptr)
     , Graphics(nullptr)
     , ShaderManager(nullptr)
-    , VertexShader(nullptr)
-    , PixelShader(nullptr)
-    , InputLayout(nullptr)
 {
 }
 
 FWorldNormalRenderPass::~FWorldNormalRenderPass()
 {
-    // 리소스 해제 코드
 }
 
 void FWorldNormalRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
@@ -47,16 +42,11 @@ void FWorldNormalRenderPass::CreateShader()
 
     Stride = sizeof(FStaticMeshVertex);
 
-    // 셰이더 컴파일
     ShaderManager->AddVertexShaderAndInputLayout(
         L"WorldNormalVS", L"Shaders/WorldNormalVertexShader.hlsl", "mainVS", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc));
 
     ShaderManager->AddPixelShader(
         L"WorldNormalPS", L"Shaders/WorldNormalPixelShader.hlsl", "mainPS");
-
-    VertexShader = ShaderManager->GetVertexShaderByKey(L"WorldNormalVS");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"WorldNormalPS");
-    InputLayout = ShaderManager->GetInputLayoutByKey(L"WorldNormalVS");
 }
 
 void FWorldNormalRenderPass::PrepareRender()
@@ -76,13 +66,7 @@ void FWorldNormalRenderPass::PrepareRenderState()
     Graphics->DeviceContext->PSSetShader(ShaderManager->GetPixelShaderByKey(L"WorldNormalPS"), nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(ShaderManager->GetInputLayoutByKey(L"WorldNormalVS"));
 
-    TArray<FString> VSBufferKeys = {
-        TEXT("FLightBuffer"),
-    };
-    BufferManager->BindConstantBuffers(VSBufferKeys, 0, EShaderStage::Vertex);
-
     TArray<FString> PSBufferKeys = {
-        TEXT("FLightBuffer"),
         TEXT("FSubMeshConstants"),
         TEXT("FTextureConstants")
     };
@@ -145,7 +129,6 @@ void FWorldNormalRenderPass::Render(const std::shared_ptr<FEditorViewportClient>
         FCameraConstantBuffer CameraData(Viewport->ViewTransformPerspective.GetLocation(), 0);
         BufferManager->UpdateConstantBuffer(TEXT("FCameraConstantBuffer"), CameraData);
 
-        // 상수 버퍼 바인딩
         TArray<FString> VSBufferKeys = {
             TEXT("FPerObjectConstantBuffer"),
             TEXT("FCameraConstantBuffer")
