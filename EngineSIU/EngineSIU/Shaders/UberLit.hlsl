@@ -254,7 +254,7 @@ float3 CalculateLambertLighting(float3 worldPosition, float3 worldNormal)
 
 
 float3 CalculateBlinnPhongLighting(float3 worldPosition, float3 worldNormal)
-{
+{ 
     float3 viewDir = normalize(CameraPosition - worldPosition);
     float3 ambientSum = AmbientLight.Color * AmbientLight.Intensity * Material.AmbientColor;
     float3 diffuseSum = float3(0.0f, 0.0f, 0.0f);
@@ -362,11 +362,8 @@ VS_OUT Uber_VS(VS_IN input)
 #if defined(LIGHTING_MODEL_GOURAUD)
     output.color = CalculateGouraudLighting(output.worldPos, output.normal);
     return output;
-#elif defined(LIGHTING_MODEL_LAMBERT)
-    output.color = input.color;
-#elif defined(LIGHTING_MODEL_PHONG)
-    output.color = input.color;
 #endif
+    
     float3 biTangent = cross(input.normal, input.tangent);
     
     float3x3 tbn =
