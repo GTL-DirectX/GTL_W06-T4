@@ -3,6 +3,7 @@
 #include "LightType.h"
 #include "Container/Array.h"
 
+class FEditorViewportClient;
 class UPrimitiveDrawBatch;
 class FDXDBufferManager;
 
@@ -12,8 +13,9 @@ public:
     void Initialize(FDXDBufferManager* InBufferManager);
 
     // GPU로 상수버퍼 업로드
-    void UpdateLightBuffer();
+    void UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     void VisualizeLights(UPrimitiveDrawBatch* PrimitiveBatch);
+    void CullLightsByDistance(const FVector& ViewOrigin, float FarPlaneDistance);
 
 private:
     void CollectLights();

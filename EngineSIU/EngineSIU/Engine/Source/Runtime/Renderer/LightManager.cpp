@@ -9,6 +9,7 @@
 #include "Components/Light/SpotLightComponent.h"
 #include "GameFrameWork/Actor.h"
 #include "Math/JungleMath.h"
+#include "UnrealEd/EditorViewportClient.h"
 
 void FLightManager::Initialize(FDXDBufferManager* InBufferManager)
 {
@@ -55,10 +56,11 @@ void FLightManager::CollectLights()
     }
 }
 
-void FLightManager::UpdateLightBuffer()
+void FLightManager::UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
 {
     CollectLights();
-
+    FVector CameraPos = ActiveViewport->ViewTransformPerspective.GetLocation();
+    CullLightsByDistance(CameraPos,/*ActiveViewport->ViewFOV*/500.0f);
     FLightBuffer LightBuffer = {};
     LightBuffer.AmbientLightInfo = AmbientLightInfo;
     LightBuffer.DirectionalLightInfo = DirectionalLightInfo;
@@ -146,4 +148,54 @@ void FLightManager::VisualizeLights(UPrimitiveDrawBatch* PrimitiveBatch)
         }
 
     }
+}
+void FLightManager::CullLightsByDistance(const FVector& ViewOrigin, float FarPlaneDistance)
+{
+    int OriginalPointCount = PointLights.Num();
+    int OriginalSpotCount = SpotLights.Num();
+    struct FPointLightWithScore
+    {
+        float Score;
+        FPointLightInfo Info;
+    };
+    struct FSpotLightWithScore
+    {
+        float Score;
+        FSpotLightInfo Info;
+    };
+
+    TArray<FPointLightWithScore> PointLightPool;
+    for (const auto& Info : PointLights)
+    {
+        float dist = FVector::Distance(ViewOrigin, Info.Position);
+        if (dist > FarPlaneDistance) continue; // 🚫 FarPlane 밖이면 제외
+        float score = FMath::Max(dist - Info.AttenuationRadius, 0.0f); // 📌 영향 범위 고려
+        PointLightPool.Add({ score, Info });
+    }
+
+    TArray<FSpotLightWithScore> SpotLightPool;
+    for (const auto& Info : SpotLights)
+    {
+        float dist = FVector::Distance(ViewOrigin, Info.Position);
+        if (dist > FarPlaneDistance) continue; // 🚫 FarPlane 밖이면 제외
+        float score = FMath::Max(dist - Info.AttenuationRadius, 0.0f); // 📌 영향 범위 고려
+        SpotLightPool.Add({ score, Info });
+    }
+
+    PointLightPool.Sort([](const auto& A, const auto& B) { return A.Score < B.Score; });
+    SpotLightPool.Sort([](const auto& A, const auto& B) { return A.Score < B.Score; });
+
+    constexpr int MaxPoint = MAX_POINT_LIGHTS;
+    constexpr int MaxSpot = MAX_SPOT_LIGHTS;
+
+    PointLights.Empty();
+    for (int i = 0; i < FMath::Min(MaxPoint, PointLightPool.Num()); ++i)
+        PointLights.Add(PointLightPool[i].Info);
+
+    SpotLights.Empty();
+    for (int i = 0; i < FMath::Min(MaxSpot, SpotLightPool.Num()); ++i)
+        SpotLights.Add(SpotLightPool[i].Info);
+    UE_LOG(LogLevel::Display, TEXT("Culled PointLights: %d => %d"), OriginalPointCount, PointLights.Num());
+    UE_LOG(LogLevel::Display, TEXT("Culled SpotLights:  %d => %d"), OriginalSpotCount, SpotLights.Num());
+
 }
