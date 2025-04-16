@@ -1,6 +1,4 @@
 #include "ShaderCommon.hlsl"
-#define NUM_POINT_LIGHT 4
-#define NUM_SPOT_LIGHT 4
 
 struct FAmbientLightInfo
 {
@@ -55,13 +53,13 @@ Texture2D AmbientTexture : register(t1);
 Texture2D SpecularTexture : register(t2);
 Texture2D BumpTexture : register(t3);
 Texture2D AlphaTexture : register(t4);
+StructuredBuffer<FPointLightInfo> PointLights : register(t5);
+StructuredBuffer<FSpotLightInfo> SpotLights : register(t6);
 SamplerState Sampler : register(s0);
 cbuffer Lighting : register(b0)
 {
     FAmbientLightInfo AmbientLight;
     FDirectionalLightInfo DirectionalLight;
-    FPointLightInfo PointLights[NUM_POINT_LIGHT];
-    FSpotLightInfo SpotLights[NUM_SPOT_LIGHT];
 };
 cbuffer FlagConstants : register(b1)
 {
@@ -112,8 +110,6 @@ struct PS_OUT
 float ComputeDistanceAttenuation(float distance, float radius, float exponent)
 {
     return pow(saturate(1.0f - distance / radius), exponent);
-    // const float epsilon = 1e-5;
-    // return 1.0f / (distance * distance + epsilon);
 }
 
 float ComputeSpotlightFactor(float3 lightDir, float3 spotDirection, float innerAngle, float outerAngle)
@@ -152,7 +148,10 @@ float4 CalculateGouraudLighting(float3 worldPosition, float3 worldNormal)
     totalLight += DirectionalLight.Color * DirectionalLight.Intensity * dirDiffuse;
 
     // Point Lights
-    for (int i = 0; i < NUM_POINT_LIGHT; i++)
+    uint lightCount;
+    uint lightStride;
+    PointLights.GetDimensions(lightCount, lightStride);
+    for (int i = 0; i < lightCount; i++)
     {
         float3 toLight = PointLights[i].Position - worldPosition;
         float distance = length(toLight);
@@ -170,7 +169,8 @@ float4 CalculateGouraudLighting(float3 worldPosition, float3 worldNormal)
     }
 
     // Spot Lights
-    for (int i = 0; i < NUM_SPOT_LIGHT; i++)
+    SpotLights.GetDimensions(lightCount,lightStride);
+    for (int i = 0; i < lightCount; ++i)
     {
         float3 toLight = SpotLights[i].Position - worldPosition;
         float distance = length(toLight);
@@ -206,7 +206,10 @@ float3 CalculateLambertLighting(float3 worldPosition, float3 worldNormal)
     diffuseSum += DirectionalLight.Color * DirectionalLight.Intensity * dirDiffuse;
     
     // Point Lights
-    for (int i = 0; i < NUM_POINT_LIGHT; i++)
+    uint lightCount;
+    uint pStride;
+    PointLights.GetDimensions(lightCount, pStride);
+    for (int i = 0; i < lightCount; ++i)
     {
         float3 toLight = PointLights[i].Position - worldPosition;
         float distance = length(toLight);
@@ -224,7 +227,8 @@ float3 CalculateLambertLighting(float3 worldPosition, float3 worldNormal)
     }
 
     // Spot Lights
-    for (int i = 0; i < NUM_SPOT_LIGHT; i++)
+    SpotLights.GetDimensions(lightCount, pStride);
+    for (int i = 0; i < lightCount; ++i)
     {
         float3 toLight = SpotLights[i].Position - worldPosition;
         float distance = length(toLight);
@@ -272,7 +276,10 @@ float3 CalculateBlinnPhongLighting(float3 worldPosition, float3 worldNormal)
     diffuseSum += factor.Diffuse;
     specularSum += factor.Specular;
 
-    for(int i = 0; i < NUM_POINT_LIGHT; ++i)
+    uint lightCount;
+    uint pStride;
+    PointLights.GetDimensions(lightCount, pStride);
+    for(int i = 0; i < lightCount; ++i)
     {
         float3 toLight = PointLights[i].Position - worldPosition;
         float distance = length(toLight);
@@ -293,7 +300,8 @@ float3 CalculateBlinnPhongLighting(float3 worldPosition, float3 worldNormal)
         specularSum += factor.Specular;
     }
 
-    for(int i = 0; i < NUM_SPOT_LIGHT; ++i)
+    SpotLights.GetDimensions(lightCount, pStride);
+    for(int i = 0; i < lightCount; ++i)
     {
         float3 toLight = SpotLights[i].Position - worldPosition;
         float distance = length(toLight);

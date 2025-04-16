@@ -183,6 +183,10 @@ void FStaticMeshRenderPass::PrepareRenderState(EViewModeIndex viewMode)
                               TEXT("FTextureConstants")
     };
     BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
+    BufferManager->BindStructuredBuffer("FPointLightInfoStructuredBuffer", 5, EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer("FPointLightInfoStructuredBuffer", 5, EShaderStage::Pixel);
+    BufferManager->BindStructuredBuffer("FSpotLightInfoStructuredBuffer", 6, EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer("FSpotLightInfoStructuredBuffer", 6, EShaderStage::Pixel);
 }
 
 void FStaticMeshRenderPass::UpdatePerObjectConstant(const FMatrix& Model, const FMatrix& View, const FMatrix& Projection, const FVector4& UUIDColor, bool Selected) const

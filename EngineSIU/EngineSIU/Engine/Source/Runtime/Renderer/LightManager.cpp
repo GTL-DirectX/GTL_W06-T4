@@ -24,6 +24,12 @@ void FLightManager::CollectLights()
     PointLights.Empty();
     SpotLights.Empty();
 
+    // structuredBuffer 0번 인덱스용 padding
+    FPointLightInfo tempPoint;
+    PointLights.Add(tempPoint);
+    FSpotLightInfo tempSpot;
+    SpotLights.Add(tempSpot);
+
     for (ULightComponent* Light : TObjectRange<ULightComponent>())
     {
         if (!Light->IsVisible())
@@ -58,15 +64,8 @@ void FLightManager::UpdateLightBuffer(const std::shared_ptr<FEditorViewportClien
     LightBuffer.AmbientLightInfo = AmbientLightInfo;
     LightBuffer.DirectionalLightInfo = DirectionalLightInfo;
 
-    for (int i = 0; i < FMath::Min(PointLights.Num(), MAX_POINT_LIGHTS); ++i)
-    {
-        LightBuffer.PointLightInfos[i] = PointLights[i];
-    }
-
-    for (int i = 0; i < FMath::Min(SpotLights.Num(), MAX_SPOT_LIGHTS); ++i)
-    {
-        LightBuffer.SpotLightInfos[i] = SpotLights[i];
-    }
+    BufferManager->CreateStructuredBuffer("FPointLightInfoStructuredBuffer", PointLights.GetData(), sizeof(FPointLightInfo), D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, PointLights.Num());
+    BufferManager->CreateStructuredBuffer("FSpotLightInfoStructuredBuffer", SpotLights.GetData(), sizeof(FSpotLightInfo), D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, SpotLights.Num());
 
     BufferManager->UpdateConstantBuffer(TEXT("FLightBuffer"), LightBuffer);
 }
@@ -102,8 +101,6 @@ void FLightManager::VisualizeLights(UPrimitiveDrawBatch* PrimitiveBatch)
                 Rotation
             );
         }
-
-
 
         else if (auto* SpotLight = Cast<USpotLightComponent>(Light))
         {

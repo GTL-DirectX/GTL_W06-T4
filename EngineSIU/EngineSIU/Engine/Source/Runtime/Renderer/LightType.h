@@ -77,6 +77,4 @@ struct FLightBuffer
 {
     FAmbientLightInfo AmbientLightInfo;
     FDirectionalLightInfo DirectionalLightInfo;
-    FPointLightInfo PointLightInfos[MAX_POINT_LIGHTS];
-    FSpotLightInfo SpotLightInfos[MAX_SPOT_LIGHTS];
 };
