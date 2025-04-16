@@ -10,7 +10,7 @@ struct FLight
 {
     FLinearColor DiffuseColor=FLinearColor::White;
     FLinearColor SpecularColor;
-    float Intensity = 1000.0f;
+    float Intensity = 1.0f;
 
     FLight() = default;
     FLight(const FVector& InDiffuse, const FVector& InSpecular, float InIntensity)
