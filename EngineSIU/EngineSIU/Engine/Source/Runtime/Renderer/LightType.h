@@ -26,53 +26,52 @@ struct FLight
 // GPU에 전달할 라이트 구조체 (상수버퍼용)
 // --------------------------------------------------
 
-// 환경광 (Ambient)
-struct FAmbientLightInfo
+// 환경광
+struct alignas(16) FAmbientLightInfo
 {
-    FVector Color;         // RGB 컬러
+    FVector Color = FVector(1, 1, 1);
     float Intensity = 1.0f;
 };
 
-// 방향광 (Directional)
-struct FDirectionalLightInfo
+// 방향광
+struct alignas(16) FDirectionalLightInfo
 {
-    FVector Color;         // RGB 컬러
+    FVector Color = FVector(1, 1, 1);
     float Intensity = 1.0f;
 
-    FVector Direction;     // 단위 벡터
+    FVector Direction = FVector(1, 0, 0);
     float Pad = 0.0f;
 };
 
-// 포인트 라이트 (Point)
-struct FPointLightInfo
+// 점광원
+struct alignas(16) FPointLightInfo
 {
-    FVector Color;         // RGB 컬러
+    FVector Color = FVector(1, 1, 1);
     float Intensity = 1.0f;
 
-    FVector Position;      // 월드 위치
+    FVector Position = FVector::ZeroVector;
     float AttenuationRadius = 100.0f;
 
     float LightFalloffExponent = 2.0f;
-    FVector Pad = FVector(); // align 16
+    FVector Pad = FVector::ZeroVector; // align 16
 };
 
-// 스포트라이트 (Spot)
-struct FSpotLightInfo
+// 스포트라이트
+struct alignas(16) FSpotLightInfo
 {
-    FVector Color;         // RGB 컬러
+    FVector Color = FVector(1, 1, 1);
     float Intensity = 1.0f;
 
-    FVector Position;      // 월드 위치
+    FVector Position = FVector::ZeroVector;
     float AttenuationRadius = 100.0f;
 
     float LightFalloffExponent = 2.0f;
-    FVector Direction;     // 단위 벡터
+    FVector Direction = FVector(1, 0, 0);
 
-    float InnerConeAngle = 0.2f; // radians
-    float OuterConeAngle = 0.6f; // radians
-    FVector2D Pad = FVector2D(0.0f, 0.0f);
+    float InnerConeAngle = 0.2f;
+    float OuterConeAngle = 0.6f;
+    FVector2D Pad = FVector2D(0, 0); // align 16
 };
-
 // 최종 GPU용 조합 구조체
 struct FLightBuffer
 {

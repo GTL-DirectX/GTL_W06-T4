@@ -9,8 +9,6 @@ class UPointLightComponent : public ULightComponent
 public:
     UPointLightComponent() = default;
 
-    virtual void UploadLightInfo(void* OutInfo) const override;
-
     virtual UObject* Duplicate(UObject* InOuter) override;
     float GetAttenuationRadius() const { return AttRadius; }
     void SetAttenuationRadius(float InRadius) { AttRadius = InRadius; }

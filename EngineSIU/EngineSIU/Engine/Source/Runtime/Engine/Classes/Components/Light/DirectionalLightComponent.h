@@ -9,7 +9,5 @@ class UDirectionalLightComponent : public ULightComponent
 public:
     UDirectionalLightComponent() = default;
 
-    virtual void UploadLightInfo(void* OutInfo)const override;
-
     virtual UObject* Duplicate(UObject* InOuter) override;
 };
