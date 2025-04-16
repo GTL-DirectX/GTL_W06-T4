@@ -86,18 +86,15 @@ struct VS_IN
     float3 tangent : TANGENT;
     float2 texcoord : TEXCOORD;
     float4 color : COLOR; // 버텍스 색상
-    int materialIndex : MATERIAL_INDEX;
 };
 
 struct VS_OUT
 {
     float4 position : SV_POSITION; // 클립 공간으로 변환된 화면 좌표
-    float3 worldPos : TEXCOORD0; // 월드 공간 위치 (조명용)
+    float3 worldPos : WORLD_POS; // 월드 공간 위치 (조명용)
     float4 color : COLOR; // 버텍스 컬러 또는 머티리얼 베이스 컬러
     float3 normal : NORMAL; // 월드 공간 노멀
-    float normalFlag : TEXCOORD1; // 노멀 유효 플래그 (1.0 또는 0.0)
-    float2 texcoord : TEXCOORD2; // UV 좌표
-    int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
+    float2 texcoord : TEXCOORD; // UV 좌표
     float3x3 tbn : TBN_MATRIX; // TBN Matrix for normal mapping
 };
 
@@ -357,7 +354,6 @@ VS_OUT Uber_VS(VS_IN input)
     VS_OUT output;
     
     float4 worldPosition = mul(float4(input.position, 1), World);
-    output.materialIndex = input.materialIndex;
     output.worldPos = worldPosition.xyz;
     output.position = mul(float4(input.position, 1.0), GetMVP());
     output.normal = normalize(mul(input.normal, (float3x3) MInverseTranspose));

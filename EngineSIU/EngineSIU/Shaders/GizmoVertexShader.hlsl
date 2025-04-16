@@ -8,24 +8,20 @@ struct VS_INPUT
     float4 color : COLOR;
     float3 normal : NORMAL;
     float2 texcoord : TEXCOORD;
-    int materialIndex : MATERIAL_INDEX;
 };
 
 struct VS_OUT
 {
     float4 position : SV_POSITION;
-    float3 worldPos : TEXCOORD0;
+    float3 worldPos : WORLD_POS;
     float4 color : COLOR;
     float3 normal : NORMAL;
-    float2 texcoord : TEXCOORD1;
-    int materialIndex : MATERIAL_INDEX;
+    float2 texcoord : TEXCOORD;
 };
 
 VS_OUT mainVS(VS_INPUT input)
 {
     VS_OUT output;
-
-    output.materialIndex = input.materialIndex;
 
     float4 worldPosition = mul(input.position, World);
     output.worldPos = worldPosition.xyz;

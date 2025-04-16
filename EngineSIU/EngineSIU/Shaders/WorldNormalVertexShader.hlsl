@@ -7,25 +7,21 @@ struct VS_IN
     float3 tangent : TANGENT;
     float2 texcoord : TEXCOORD;
     float4 color : COLOR;
-    int materialIndex : MATERIAL_INDEX;
 };
 
 struct VS_OUT
 {
     float4 position : SV_POSITION;
-    float3 worldPos : TEXCOORD0;
+    float3 worldPos : WORLD_POS;
     float4 color : COLOR;
     float3 normal : NORMAL;
-    float2 texcoord : TEXCOORD2;
-    int materialIndex : MATERIAL_INDEX;
+    float2 texcoord : TEXCOORD;
     float3x3 tbn : TBN_MATRIX;
 };
 
 VS_OUT mainVS(VS_IN input)
 {
     VS_OUT output;
-    
-    output.materialIndex = input.materialIndex;
     
     float4 worldPosition = mul(float4(input.position, 1), World);
     output.worldPos = worldPosition.xyz;

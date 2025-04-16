@@ -11,11 +11,10 @@ cbuffer FlagConstants : register(b0)
 struct PS_INPUT
 {
     float4 position : SV_POSITION;
-    float3 worldPos : TEXCOORD0;
+    float3 worldPos : WORLD_POS;
     float4 color : COLOR;
     float3 normal : NORMAL;
-    float2 texcoord : TEXCOORD2;
-    int materialIndex : MATERIAL_INDEX;
+    float2 texcoord : TEXCOORD;
 };
 
 struct PS_OUTPUT
