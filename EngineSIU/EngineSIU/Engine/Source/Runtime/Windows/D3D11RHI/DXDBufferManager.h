@@ -62,6 +62,8 @@ public:
 
     template<typename T>
     HRESULT CreateBufferGeneric(const FString& KeyName, T* data, UINT byteWidth, UINT bindFlags, D3D11_USAGE usage, UINT cpuAccessFlags);
+    template<typename T>
+    HRESULT CreateStructuredBuffer(const FString& KeyName, T* data, UINT byteWidth, UINT bindFlags, D3D11_USAGE usage, UINT cpuAccessFlags, UINT elementCount);
 
     template<typename T>
     void UpdateConstantBuffer(const FString& key, const T& data) const;
@@ -71,6 +73,7 @@ public:
 
     void BindConstantBuffers(const TArray<FString>& Keys, UINT StartSlot, EShaderStage Stage) const;
     void BindConstantBuffer(const FString& Key, UINT StartSlot, EShaderStage Stage) const;
+    void BindStructuredBuffer(const FString& Key, UINT StartSlot, EShaderStage Stage) const;
 
     template<typename T>
     static void SafeRelease(T*& comObject);
@@ -95,6 +98,7 @@ private:
     TMap<FString, FVertexInfo> VertexBufferPool;
     TMap<FString, FIndexInfo> IndexBufferPool;
     TMap<FString, ID3D11Buffer*> ConstantBufferPool;
+    TMap<FString, ID3D11ShaderResourceView*> ShaderResourceViewPool;
 
     TMap<FWString, FBufferInfo> TextAtlasBufferPool;
     TMap<FWString, FVertexInfo> TextAtlasVertexBufferPool;
@@ -270,6 +274,174 @@ HRESULT FDXDBufferManager::CreateBufferGeneric(const FString& KeyName, T* data, 
     }
 
     ConstantBufferPool.Add(KeyName, buffer);
+    return S_OK;
+}
+
+template <typename T>
+HRESULT FDXDBufferManager::CreateStructuredBuffer(const FString& KeyName, T* data, UINT byteWidth, UINT bindFlags, D3D11_USAGE usage,
+    UINT cpuAccessFlags, UINT elementCount)
+{
+    byteWidth = Align16(byteWidth);
+    elementCount <= 0 ? elementCount = 1 : elementCount;
+    UINT totalSize = byteWidth * elementCount;
+
+    bool needNewSRV = false;
+    UINT oldElementCount = 0;
+
+    // 기존 버퍼가 존재하는지 확인
+    ID3D11Buffer** existingBufferPtr = ConstantBufferPool.Find(KeyName);
+    if (existingBufferPtr && *existingBufferPtr)
+    {
+        // 기존 버퍼의 속성을 가져와서 크기 확인
+        D3D11_BUFFER_DESC existingDesc;
+        (*existingBufferPtr)->GetDesc(&existingDesc);
+
+        // SRV의 elementCount 확인을 위해 기존 SRV 정보 가져오기
+        if (bindFlags & D3D11_BIND_SHADER_RESOURCE)
+        {
+            ID3D11ShaderResourceView** existingSRVPtr = ShaderResourceViewPool.Find(KeyName);
+            if (existingSRVPtr && *existingSRVPtr)
+            {
+                D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+                (*existingSRVPtr)->GetDesc(&srvDesc);
+                oldElementCount = srvDesc.Buffer.NumElements;
+                
+                // elementCount가 변경되었는지 확인
+                if (oldElementCount != elementCount)
+                {
+                    needNewSRV = true;
+                }
+            }
+        }
+
+        // 기존 버퍼가 충분히 크고 속성이 동일하면 재사용
+        if (existingDesc.ByteWidth >= totalSize && 
+            existingDesc.Usage == usage && 
+            existingDesc.BindFlags == bindFlags &&
+            existingDesc.CPUAccessFlags == cpuAccessFlags)
+        {
+            // 데이터 업데이트만 수행
+            if (data)
+            {
+                ID3D11DeviceContext* context;
+                DXDevice->GetImmediateContext(&context);
+                
+                if (usage == D3D11_USAGE_DYNAMIC)
+                {
+                    // 동적 버퍼의 경우 Map/Unmap 사용
+                    D3D11_MAPPED_SUBRESOURCE mappedResource;
+                    context->Map(*existingBufferPtr, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+                    memcpy(mappedResource.pData, data, totalSize);
+                    context->Unmap(*existingBufferPtr, 0);
+                }
+                else if (cpuAccessFlags & D3D11_CPU_ACCESS_WRITE)
+                {
+                    // CPU 쓰기 접근이 가능한 경우
+                    D3D11_MAPPED_SUBRESOURCE mappedResource;
+                    context->Map(*existingBufferPtr, 0, D3D11_MAP_WRITE, 0, &mappedResource);
+                    memcpy(mappedResource.pData, data, totalSize);
+                    context->Unmap(*existingBufferPtr, 0);
+                }
+                else
+                {
+                    // 기본 버퍼의 경우 UpdateSubresource 사용
+                    context->UpdateSubresource(*existingBufferPtr, 0, nullptr, data, 0, 0);
+                }
+                
+                context->Release();
+            }
+            
+            // elementCount가 변경된 경우 SRV를 업데이트
+            if (needNewSRV && (bindFlags & D3D11_BIND_SHADER_RESOURCE))
+            {
+                // 기존 SRV 해제
+                ID3D11ShaderResourceView** existingSRVPtr = ShaderResourceViewPool.Find(KeyName);
+                if (existingSRVPtr && *existingSRVPtr)
+                {
+                    (*existingSRVPtr)->Release();
+                    ShaderResourceViewPool.Remove(KeyName);
+                }
+
+                // 새 SRV 생성
+                ID3D11ShaderResourceView* srv = nullptr;
+                D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+                srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+                srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+                srvDesc.Buffer.FirstElement = 0;
+                srvDesc.Buffer.NumElements = elementCount;
+                
+                HRESULT hr = DXDevice->CreateShaderResourceView(*existingBufferPtr, &srvDesc, &srv);
+                if (FAILED(hr))
+                {
+                    UE_LOG(LogLevel::Error, TEXT("Error Create SRV for Structured Buffer!"));
+                    return hr;
+                }
+                
+                // SRV 저장
+                ShaderResourceViewPool.Add(KeyName, srv);
+            }
+            
+            return S_OK;
+        }
+        else
+        {
+            // 기존 버퍼를 해제하고 새로 생성
+            (*existingBufferPtr)->Release();
+            ConstantBufferPool.Remove(KeyName);
+            
+            // 기존 SRV도 해제
+            ID3D11ShaderResourceView** existingSRVPtr = ShaderResourceViewPool.Find(KeyName);
+            if (existingSRVPtr && *existingSRVPtr)
+            {
+                (*existingSRVPtr)->Release();
+                ShaderResourceViewPool.Remove(KeyName);
+            }
+        }
+    }
+
+    // 새 버퍼 생성 로직
+    D3D11_BUFFER_DESC desc = {};
+    desc.ByteWidth = totalSize;
+    desc.Usage = usage;
+    desc.BindFlags = bindFlags;
+    desc.CPUAccessFlags = cpuAccessFlags;
+    desc.StructureByteStride = byteWidth;
+    desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = data;
+
+    ID3D11Buffer* buffer = nullptr;
+    HRESULT hr = DXDevice->CreateBuffer(&desc, data ? &initData : nullptr, &buffer);
+    if (FAILED(hr))
+    {
+        UE_LOG(LogLevel::Error, TEXT("Error Create Structured Buffer!"));
+        return hr;
+    }
+
+    ConstantBufferPool.Add(KeyName, buffer);
+
+    // SRV 생성 (bindFlags에 D3D11_BIND_SHADER_RESOURCE가 포함된 경우)
+    if (bindFlags & D3D11_BIND_SHADER_RESOURCE)
+    {
+        ID3D11ShaderResourceView* srv = nullptr;
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+        srvDesc.Buffer.FirstElement = 0;
+        srvDesc.Buffer.NumElements = elementCount;
+        
+        hr = DXDevice->CreateShaderResourceView(buffer, &srvDesc, &srv);
+        if (FAILED(hr))
+        {
+            UE_LOG(LogLevel::Error, TEXT("Error Create SRV for Structured Buffer!"));
+            return hr;
+        }
+        
+        // SRV 저장
+        ShaderResourceViewPool.Add(KeyName, srv);
+    }
+    
     return S_OK;
 }
 
