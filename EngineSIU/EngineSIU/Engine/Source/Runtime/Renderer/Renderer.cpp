@@ -150,7 +150,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     {
         StaticMeshRenderPass->Render(ActiveViewport);
     }
-
     LightManager->VisualizeLights(&GEngineLoop.PrimitiveDrawBatch);
 
     //UpdateLightBufferPass->Render(ActiveViewport);

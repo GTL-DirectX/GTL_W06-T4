@@ -10,6 +10,7 @@
 #include "GameFrameWork/Actor.h"
 #include "Math/JungleMath.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "World/World.h"
 
 void FLightManager::Initialize(FDXDBufferManager* InBufferManager)
 {
@@ -81,16 +82,16 @@ void FLightManager::VisualizeLights(UPrimitiveDrawBatch* PrimitiveBatch)
 
         if (auto* DirLight = Cast<UDirectionalLightComponent>(Light))
         {
+            const float Scale = 5.0f;
             const FVector Origin = Light->GetWorldLocation();
             const FVector Dir = Light->GetForwardVector();
 
             // Apex를 전방으로 1만큼 이동한 위치로 설정
-            const FVector Apex = Origin + Dir * 1.0f;
+            const FVector Apex = Origin + Dir * Scale;
 
             // Height = 거리, Radius는 적당히
             const float Height = -FVector::Distance(Apex, Origin);
             const float Radius = 0.2f; // 얇고 날카로운 Cone
-
             FMatrix Rotation = FMatrix::GetRotationMatrix(Light->GetWorldRotation());
             PrimitiveBatch->AddConeToBatch(
                 Apex,         // Apex: 앞쪽
