@@ -44,6 +44,12 @@ struct FSpotLightInfo
     float2 Pad;
 };
 
+struct LightFactors
+{
+    float3 Diffuse;
+    float3 Specular;
+};
+
 Texture2D DiffuseTexture : register(t0);
 Texture2D AmbientTexture : register(t1);
 Texture2D SpecularTexture : register(t2);
@@ -115,12 +121,6 @@ float ComputeSpotlightFactor(float3 lightDir, float3 spotDirection, float innerA
     float cosTheta = dot(lightDir, normalize(-spotDirection));
     return smoothstep(cos(outerAngle), cos(innerAngle), cosTheta);
 }
-
-struct LightFactors
-{
-    float3 Diffuse;
-    float3 Specular;
-};
 
 LightFactors ComputeBlinnPhong(float3 lightColor, float intensity, float3 lightDir, float3 viewDir, float3 normal, float attenuation)
 {
@@ -323,9 +323,7 @@ float3 CalculateBlinnPhongLighting(float3 worldPosition, float3 worldNormal, flo
     diffuseSum = diffuseSum * albedo;
     specularSum = specularSum * Material.SpecularColor;
     return (ambientSum + diffuseSum + specularSum);
-    //return float3(1.0f, 0.0f, 0.0f);
 }
-
 
 float3 CalculateNormalFromMap(float3 baseNormal, float2 texCoord, float3x3 tbn)
 {
