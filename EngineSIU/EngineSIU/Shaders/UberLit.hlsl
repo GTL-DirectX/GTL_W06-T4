@@ -136,9 +136,9 @@ LightFactors ComputeBlinnPhong(float3 lightColor, float intensity, float3 lightD
     float3 specular = lightColor * intensity * spec * attenuation;
 
     LightFactors factor;
-    factor.Diffuse = diffuse;
-    factor.Specular = specular;
-    // factor.Specular = float3(0.1f, 0.0f, 0.0f);
+    factor.Diffuse = saturate(diffuse);
+    factor.Specular = saturate(specular);
+    //factor.Specular = float3(0.0f, 0.0f, 0.0f);
     return factor;
 }
 
@@ -195,7 +195,7 @@ float4 CalculateGouraudLighting(float3 worldPosition, float3 worldNormal)
     return float4(totalLight, 1.0f);
 }
 
-float3 CalculateLambertLighting(float3 worldPosition, float3 worldNormal, float3 albedo)
+float3 CalculateLambertLighting(float3 worldPosition, float3 worldNormal)
 {
     float3 ambientSum = AmbientLight.Color * AmbientLight.Intensity * Material.AmbientColor;
     float3 diffuseSum = float3(0.0f, 0.0f, 0.0f);
@@ -246,13 +246,13 @@ float3 CalculateLambertLighting(float3 worldPosition, float3 worldNormal, float3
             * diffuse * attenuation * spotFactor;
     }
 
-    diffuseSum = diffuseSum * albedo;
+    diffuseSum = diffuseSum;
     
     return ambientSum + diffuseSum;
 }
 
 
-float3 CalculateBlinnPhongLighting(float3 worldPosition, float3 worldNormal, float3 albedo)
+float3 CalculateBlinnPhongLighting(float3 worldPosition, float3 worldNormal)
 {
     float3 viewDir = normalize(CameraPosition - worldPosition);
     float3 ambientSum = AmbientLight.Color * AmbientLight.Intensity * Material.AmbientColor;
@@ -261,8 +261,6 @@ float3 CalculateBlinnPhongLighting(float3 worldPosition, float3 worldNormal, flo
     
     // Directional Light
     float3 dirLightDir = normalize(-DirectionalLight.Direction);
-    float3 halfDir = normalize(dirLightDir + viewDir);
-    float specular = pow(saturate(dot(worldNormal, halfDir)), Material.SpecularScalar);
     
     LightFactors factor =  ComputeBlinnPhong(DirectionalLight.Color, 
         DirectionalLight.Intensity, 
@@ -272,7 +270,7 @@ float3 CalculateBlinnPhongLighting(float3 worldPosition, float3 worldNormal, flo
         1.0f);
     
     diffuseSum += factor.Diffuse;
-    specularSum += (factor.Specular * specular);
+    specularSum += factor.Specular;
 
     for(int i = 0; i < NUM_POINT_LIGHT; ++i)
     {
@@ -320,7 +318,7 @@ float3 CalculateBlinnPhongLighting(float3 worldPosition, float3 worldNormal, flo
         specularSum += factor.Specular * spotFactor;
     }
 
-    diffuseSum = diffuseSum * albedo;
+    diffuseSum = diffuseSum;
     specularSum = specularSum * Material.SpecularColor;
     return (ambientSum + diffuseSum + specularSum);
 }
@@ -391,16 +389,18 @@ PS_OUT Uber_PS(VS_OUT Input) : SV_TARGET
     float3 normal = Input.normal;
  
 #if defined(LIGHTING_MODEL_GOURAUD)
-    lighting = Input.color;
+    lighting = Input.color * baseColor;
 #elif defined(LIGHTING_MODEL_LAMBERT)
     normal = CalculateNormalFromMap(Input.normal, Input.texcoord, Input.tbn);
-    lighting = CalculateLambertLighting(Input.worldPos, normalize(normal), baseColor);
+    lighting = CalculateLambertLighting(Input.worldPos, normalize(normal));
 #elif defined(LIGHTING_MODEL_PHONG)
     normal = CalculateNormalFromMap(Input.normal, Input.texcoord, Input.tbn);
-    lighting = CalculateBlinnPhongLighting(Input.worldPos, normalize(normal), baseColor);
+    lighting = CalculateBlinnPhongLighting(Input.worldPos, normalize(normal));
 #else
+    output.color = float4(baseColor, 1.0f);
+    return output;
 #endif
-    float3 finalColor = lighting + Material.EmissiveColor;
+    float3 finalColor = baseColor * lighting + Material.EmissiveColor;
 
     output.color = float4(finalColor, 1.0f);
     
