@@ -11,6 +11,7 @@
 #include "Math/JungleMath.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "World/World.h"
+#include "Engine/Engine.h"
 
 void FLightManager::Initialize(FDXDBufferManager* InBufferManager)
 {
@@ -33,7 +34,7 @@ void FLightManager::CollectLights()
 
     for (ULightComponent* Light : TObjectRange<ULightComponent>())
     {
-        if (!Light->IsVisible())
+        if (!Light->IsVisible() || Light->GetWorld() != GEngine->ActiveWorld)
             continue;
 
         if (auto* AmbientLight = Cast<UAmbientLightComponent>(Light))
@@ -75,6 +76,9 @@ void FLightManager::VisualizeLights(UPrimitiveDrawBatch* PrimitiveBatch)
     for (ULightComponent* Light : TObjectRange<ULightComponent>())
     {
         if (!Light->IsVisible())
+            continue;
+
+        if (!(Light->GetWorld() == GEngine->ActiveWorld && Light->GetWorld()->WorldType == EWorldType::Editor))
             continue;
 
         const FVector Origin = Light->GetWorldLocation();
