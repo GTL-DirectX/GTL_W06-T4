@@ -35,6 +35,10 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/spotLight.png");
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/SpotLight_64x.png");
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/PointLight_64x.png");
+    LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Editor/Icon/SkyLight.DDS");
+    LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Editor/Icon/S_LightRect.DDS");
+    LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Editor/Icon/S_LightSpot.DDS");
+    LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Editor/Icon/S_LightDirectional.DDS");
 }
 
 void FResourceMgr::Release(FRenderer* renderer) {

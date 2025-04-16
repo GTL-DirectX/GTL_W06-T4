@@ -6,24 +6,6 @@
             "ActorLabel": "OBJ_AmbientLight_59",
             "Components": [
                 {
-                    "ComponentClass": "UAmbientLightComponent",
-                    "ComponentID": "AmbientLight_0",
-                    "Properties": {
-                        "ComponentClass": "UAmbientLightComponent",
-                        "ComponentName": "AmbientLight_0",
-                        "ComponentOwner": "AAmbientLight_59",
-                        "ComponentOwnerClass": "AAmbientLight",
-                        "LightDiffuseColor": "R=1.000 G=1.000 B=1.000 A=1.000",
-                        "LightIntensity": "1.000000",
-                        "LightSpecularColor": "R=0.000 G=0.000 B=0.000 A=0.000",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
-                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
-                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
-                        "bAutoActive": "true",
-                        "bIsActive": "true"
-                    }
-                },
-                {
                     "ComponentClass": "UBillboardComponent",
                     "ComponentID": "BillboardIcon_0",
                     "Properties": {
@@ -42,6 +24,24 @@
                         "bAutoActive": "true",
                         "bIsActive": "true",
                         "m_Type": "UBillboardComponent"
+                    }
+                },
+                {
+                    "ComponentClass": "UAmbientLightComponent",
+                    "ComponentID": "AmbientLight_0",
+                    "Properties": {
+                        "ComponentClass": "UAmbientLightComponent",
+                        "ComponentName": "AmbientLight_0",
+                        "ComponentOwner": "AAmbientLight_59",
+                        "ComponentOwnerClass": "AAmbientLight",
+                        "LightDiffuseColor": "R=1.000 G=1.000 B=1.000 A=1.000",
+                        "LightIntensity": "1.000000",
+                        "LightSpecularColor": "R=0.000 G=0.000 B=0.000 A=0.000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
+                        "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
+                        "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
+                        "bAutoActive": "true",
+                        "bIsActive": "true"
                     }
                 },
                 {
@@ -216,8 +216,8 @@
         },
         {
             "ActorClass": "ADirectionalLight",
-            "ActorID": "ADirectionalLight_119",
-            "ActorLabel": "OBJ_DirectionalLight_119",
+            "ActorID": "ADirectionalLight_113",
+            "ActorLabel": "OBJ_DirectionalLight_113",
             "Components": [
                 {
                     "ComponentClass": "UBillboardComponent",
@@ -225,15 +225,15 @@
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "BufferKey": "Assets/Editor/Icon/S_LightDirectional.DDS",
                         "ComponentClass": "UBillboardComponent",
                         "ComponentName": "BillboardIcon_0",
-                        "ComponentOwner": "ADirectionalLight_119",
+                        "ComponentOwner": "ADirectionalLight_113",
                         "ComponentOwnerClass": "ADirectionalLight",
                         "FinalIndexU": "0.000000",
                         "FinalIndexV": "0.000000",
-                        "RelativeLocation": "X=0.000 Y=0.000 Z=15.666",
-                        "RelativeRotation": "Pitch=-40.107 Yaw=0.000 Roll=-0.000",
+                        "RelativeLocation": "X=0.000 Y=0.000 Z=23.308",
+                        "RelativeRotation": "Pitch=-68.200 Yaw=5.700 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true",
@@ -246,9 +246,9 @@
                     "Properties": {
                         "ComponentClass": "UDirectionalLightComponent",
                         "ComponentName": "DirectionalLight_0",
-                        "ComponentOwner": "ADirectionalLight_119",
+                        "ComponentOwner": "ADirectionalLight_113",
                         "ComponentOwnerClass": "ADirectionalLight",
-                        "LightDiffuseColor": "R=0.204 G=0.409 B=0.116 A=1.000",
+                        "LightDiffuseColor": "R=0.204 G=0.408 B=0.118 A=1.000",
                         "LightIntensity": "1.000000",
                         "LightSpecularColor": "R=0.000 G=0.000 B=0.000 A=0.000",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
@@ -263,8 +263,8 @@
         },
         {
             "ActorClass": "ASpotLight",
-            "ActorID": "ASpotLight_122",
-            "ActorLabel": "OBJ_SpotLight_122",
+            "ActorID": "ASpotLight_116",
+            "ActorLabel": "OBJ_SpotLight_116",
             "Components": [
                 {
                     "ComponentClass": "UBillboardComponent",
@@ -272,15 +272,15 @@
                     "Properties": {
                         "AABB_max": "X=0.000 Y=0.000 Z=0.000",
                         "AABB_min": "X=0.000 Y=0.000 Z=0.000",
-                        "BufferKey": "Assets/Editor/Icon/PointLight_64x.png",
+                        "BufferKey": "Assets/Editor/Icon/S_LightSpot.DDS",
                         "ComponentClass": "UBillboardComponent",
                         "ComponentName": "BillboardIcon_0",
-                        "ComponentOwner": "ASpotLight_122",
+                        "ComponentOwner": "ASpotLight_116",
                         "ComponentOwnerClass": "ASpotLight",
                         "FinalIndexU": "0.000000",
                         "FinalIndexV": "0.000000",
-                        "RelativeLocation": "X=58.573 Y=33.275 Z=40.882",
-                        "RelativeRotation": "Pitch=-74.530 Yaw=-180.000 Roll=180.000",
+                        "RelativeLocation": "X=59.080 Y=30.299 Z=37.156",
+                        "RelativeRotation": "Pitch=-78.541 Yaw=-180.000 Roll=-179.999",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
                         "bAutoActive": "true",
                         "bIsActive": "true",
@@ -291,17 +291,17 @@
                     "ComponentClass": "USpotLightComponent",
                     "ComponentID": "SpotLight_0",
                     "Properties": {
-                        "AttenuationRadius": "130.000000",
+                        "AttenuationRadius": "100.000000",
                         "ComponentClass": "USpotLightComponent",
                         "ComponentName": "SpotLight_0",
-                        "ComponentOwner": "ASpotLight_122",
+                        "ComponentOwner": "ASpotLight_116",
                         "ComponentOwnerClass": "ASpotLight",
-                        "Falloff": "1.500000",
-                        "InnerConeAngle": "0.220000",
-                        "LightDiffuseColor": "R=0.812 G=0.852 B=0.073 A=1.000",
-                        "LightIntensity": "1.600000",
+                        "Falloff": "2.800000",
+                        "InnerConeAngle": "0.190000",
+                        "LightDiffuseColor": "R=0.812 G=0.851 B=0.075 A=1.000",
+                        "LightIntensity": "2.400000",
                         "LightSpecularColor": "R=0.000 G=0.000 B=0.000 A=0.000",
-                        "OuterConeAngle": "0.320000",
+                        "OuterConeAngle": "0.340000",
                         "RelativeLocation": "X=0.000 Y=0.000 Z=0.000",
                         "RelativeRotation": "Pitch=0.000 Yaw=0.000 Roll=0.000",
                         "RelativeScale3D": "X=1.000 Y=1.000 Z=1.000",
