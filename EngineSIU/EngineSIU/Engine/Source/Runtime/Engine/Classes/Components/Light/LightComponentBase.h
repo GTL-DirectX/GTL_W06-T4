@@ -12,18 +12,14 @@ class ULightComponentBase : public USceneComponent
 
 public:
     ULightComponentBase();
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& Properties) override;
+
 
 public:
     virtual UObject* Duplicate(UObject* InOuter)override;
     const FLight& GetLight() const { return LightData; }
-    void SetLight(const FLight& InLight)
-    {
-        LightData = InLight;/*
-        if (LightData.DiffuseColor == FLinearColor::Black)
-        {
-            LightData.DiffuseColor = FLinearColor::White;
-        }*/
-    }
+    void SetLight(const FLight& InLight) { LightData = InLight; }
     FLinearColor GetSpecularColor() const { return LightData.SpecularColor; }
     void SetSpecularColor(const FLinearColor& InColor) { LightData.SpecularColor = InColor; }
     FLinearColor GetDiffuseColor() const { return LightData.DiffuseColor; }

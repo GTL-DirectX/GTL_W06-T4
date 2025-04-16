@@ -3,6 +3,7 @@
 
 ALight::ALight()
 {
-    BillboardComponent = AddComponent<UBillboardComponent>();
+    BillboardComponent = AddComponent<UBillboardComponent>("BillboardIcon_0");
     BillboardComponent->SetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
+    
 }

@@ -4,6 +4,6 @@
 
 APointLight::APointLight()
 {
-    LightComponent = AddComponent<UPointLightComponent>();
+    LightComponent = AddComponent<UPointLightComponent>("PointLight_0");
     PointLightComponent = Cast<UPointLightComponent>(LightComponent);
 }
