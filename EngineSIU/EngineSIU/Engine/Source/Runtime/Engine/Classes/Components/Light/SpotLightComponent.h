@@ -8,19 +8,6 @@ class USpotLightComponent : public ULightComponent
 public:
     USpotLightComponent() = default;
 
-    virtual void UploadLightInfo(void* OutInfo) const override
-    {
-        FSpotLightInfo* Info = reinterpret_cast<FSpotLightInfo*>(OutInfo);
-        Info->Color = GetDiffuseColor().ToFVector();
-        Info->Intensity = GetIntensity();
-        Info->Position = GetWorldLocation();
-        Info->Direction = GetForwardVector();
-        Info->AttenuationRadius = AttRadius;
-        Info->LightFalloffExponent = Falloff;
-        Info->InnerConeAngle = InnerConeAngle;
-        Info->OuterConeAngle = OuterConeAngle;
-    }
-
     virtual UObject* Duplicate(UObject* InOuter) override
     {
         ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));

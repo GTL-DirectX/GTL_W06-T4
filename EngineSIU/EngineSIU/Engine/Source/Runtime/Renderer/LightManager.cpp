@@ -29,32 +29,25 @@ void FLightManager::CollectLights()
         if (!Light->IsVisible())
             continue;
 
-        if (UAmbientLightComponent* AmbientLight = Cast<UAmbientLightComponent>(Light))
+        if (auto* AmbientLight = Cast<UAmbientLightComponent>(Light))
         {
-            AmbientLight->UploadLightInfo(&AmbientLightInfo);
-            continue;
+            AmbientLightInfo = MakeAmbientLightInfo(AmbientLight);
         }
-        else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
+        else if (auto* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
         {
-            DirectionalLight->UploadLightInfo(&DirectionalLightInfo);
-            continue;
+            DirectionalLightInfo = MakeDirectionalLightInfo(DirectionalLight);
         }
-        else if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
+        else if (auto* PointLight = Cast<UPointLightComponent>(Light))
         {
-            FPointLightInfo Info = {};
-            PointLight->UploadLightInfo(&Info);
-            PointLights.Add(Info);
-            continue;
+            PointLights.Add(MakePointLightInfo(PointLight));
         }
-        else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
+        else if (auto* SpotLight = Cast<USpotLightComponent>(Light))
         {
-            FSpotLightInfo Info = {};
-            SpotLight->UploadLightInfo(&Info);
-            SpotLights.Add(Info);
-            continue;
+            SpotLights.Add(MakeSpotLightInfo(SpotLight));
         }
     }
 }
+
 
 void FLightManager::UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
 {
@@ -198,4 +191,67 @@ void FLightManager::CullLightsByDistance(const FVector& ViewOrigin, float FarPla
     UE_LOG(LogLevel::Display, TEXT("Culled PointLights: %d => %d"), OriginalPointCount, PointLights.Num());
     UE_LOG(LogLevel::Display, TEXT("Culled SpotLights:  %d => %d"), OriginalSpotCount, SpotLights.Num());
 
+}
+std::variant<FAmbientLightInfo, FDirectionalLightInfo, FPointLightInfo, FSpotLightInfo>
+FLightManager::BuildLightInfo(ULightComponent* Light)
+{
+    if (auto* Ambient = Cast<UAmbientLightComponent>(Light))
+        return MakeAmbientLightInfo(Ambient);
+
+    if (auto* Dir = Cast<UDirectionalLightComponent>(Light))
+        return MakeDirectionalLightInfo(Dir);
+
+    if (auto* Point = Cast<UPointLightComponent>(Light))
+        return MakePointLightInfo(Point);
+
+    if (auto* Spot = Cast<USpotLightComponent>(Light))
+        return MakeSpotLightInfo(Spot);
+
+
+    return FAmbientLightInfo(); // fallback
+}
+
+FAmbientLightInfo FLightManager::MakeAmbientLightInfo(UAmbientLightComponent* Light)
+{
+    return {
+        Light->GetDiffuseColor().ToFVector(),
+        Light->GetIntensity()
+    };
+}
+
+FDirectionalLightInfo FLightManager::MakeDirectionalLightInfo(UDirectionalLightComponent* Light)
+{
+    return {
+        Light->GetDiffuseColor().ToFVector(),
+        Light->GetIntensity(),
+        Light->GetForwardVector(),
+        0.0f
+    };
+}
+
+FPointLightInfo FLightManager::MakePointLightInfo(UPointLightComponent* Light)
+{
+    return {
+        Light->GetDiffuseColor().ToFVector(),
+        Light->GetIntensity(),
+        Light->GetWorldLocation(),
+        Light->GetAttenuationRadius(),
+        Light->GetFalloff(),
+        FVector::ZeroVector // pad
+    };
+}
+
+FSpotLightInfo FLightManager::MakeSpotLightInfo(USpotLightComponent* Light)
+{
+    return {
+        Light->GetDiffuseColor().ToFVector(),
+        Light->GetIntensity(),
+        Light->GetWorldLocation(),
+        Light->GetAttenuationRadius(),
+        Light->GetFalloff(),
+        Light->GetForwardVector(),
+        Light->GetInnerConeAngle(),
+        Light->GetOuterConeAngle(),
+        FVector2D(0, 0)
+    };
 }

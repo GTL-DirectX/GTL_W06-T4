@@ -9,7 +9,5 @@ class UAmbientLightComponent : public ULightComponent
 public:
     UAmbientLightComponent() = default;
 
-    virtual void UploadLightInfo(void* OutInfo) const override;
-
     virtual UObject* Duplicate(UObject* InOuter) override;
 };

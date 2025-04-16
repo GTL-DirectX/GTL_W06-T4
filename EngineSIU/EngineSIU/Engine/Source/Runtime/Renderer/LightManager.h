@@ -1,8 +1,15 @@
 #pragma once
 
+#include <variant>
+
 #include "LightType.h"
 #include "Container/Array.h"
 
+class USpotLightComponent;
+class UPointLightComponent;
+class UDirectionalLightComponent;
+class UAmbientLightComponent;
+class ULightComponent;
 class FEditorViewportClient;
 class UPrimitiveDrawBatch;
 class FDXDBufferManager;
@@ -17,6 +24,15 @@ public:
     void VisualizeLights(UPrimitiveDrawBatch* PrimitiveBatch);
     void CullLightsByDistance(const FVector& ViewOrigin, float FarPlaneDistance);
 
+    // 라이트 타입 분기 후 Info 반환 (variant로 통합)
+    std::variant<FAmbientLightInfo, FDirectionalLightInfo, FPointLightInfo, FSpotLightInfo>
+        BuildLightInfo(ULightComponent* Light);
+
+    // 각 라이트 타입별 개별 생성
+    FAmbientLightInfo MakeAmbientLightInfo(UAmbientLightComponent* Light);
+    FDirectionalLightInfo MakeDirectionalLightInfo(UDirectionalLightComponent* Light);
+    FPointLightInfo MakePointLightInfo(UPointLightComponent* Light);
+    FSpotLightInfo MakeSpotLightInfo(USpotLightComponent* Light);
 private:
     void CollectLights();
 
