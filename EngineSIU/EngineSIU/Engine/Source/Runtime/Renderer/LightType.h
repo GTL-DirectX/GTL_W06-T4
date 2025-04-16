@@ -29,48 +29,48 @@ struct FLight
 // 환경광
 struct alignas(16) FAmbientLightInfo
 {
-    FVector Color = FVector(1, 1, 1);
-    float Intensity = 1.0f;
+    FVector Color;
+    float Intensity;
 };
 
 // 방향광
 struct alignas(16) FDirectionalLightInfo
 {
-    FVector Color = FVector(1, 1, 1);
-    float Intensity = 1.0f;
+    FVector Color;
+    float Intensity;
 
-    FVector Direction = FVector(1, 0, 0);
+    FVector Direction;
     float Pad = 0.0f;
 };
 
 // 점광원
 struct alignas(16) FPointLightInfo
 {
-    FVector Color = FVector(1, 1, 1);
-    float Intensity = 1.0f;
+    FVector Color;
+    float Intensity;
 
-    FVector Position = FVector::ZeroVector;
-    float AttenuationRadius = 100.0f;
+    FVector Position;
+    float AttenuationRadius;
 
-    float LightFalloffExponent = 2.0f;
-    FVector Pad = FVector::ZeroVector; // align 16
+    float LightFalloffExponent;
+    FVector Pad; // align 16
 };
 
 // 스포트라이트
 struct alignas(16) FSpotLightInfo
 {
-    FVector Color = FVector(1, 1, 1);
-    float Intensity = 1.0f;
+    FVector Color;
+    float Intensity;
 
-    FVector Position = FVector::ZeroVector;
-    float AttenuationRadius = 100.0f;
+    FVector Position;
+    float AttenuationRadius;
 
-    float LightFalloffExponent = 2.0f;
-    FVector Direction = FVector(1, 0, 0);
+    float LightFalloffExponent;
+    FVector Direction;
 
     float InnerConeAngle = 0.2f;
     float OuterConeAngle = 0.6f;
-    FVector2D Pad = FVector2D(0, 0); // align 16
+    FVector2D Pad; // align 16
 };
 // 최종 GPU용 조합 구조체
 struct FLightBuffer
