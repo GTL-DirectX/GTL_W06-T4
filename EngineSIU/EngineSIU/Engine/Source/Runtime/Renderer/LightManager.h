@@ -33,6 +33,8 @@ public:
     FDirectionalLightInfo MakeDirectionalLightInfo(UDirectionalLightComponent* Light);
     FPointLightInfo MakePointLightInfo(UPointLightComponent* Light);
     FSpotLightInfo MakeSpotLightInfo(USpotLightComponent* Light);
+
+    bool bAmbientExist = false;
 private:
     void CollectLights();
 

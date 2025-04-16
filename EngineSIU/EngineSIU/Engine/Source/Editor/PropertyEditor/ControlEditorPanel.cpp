@@ -29,6 +29,7 @@
 #include "Engine/EngineTypes.h"
 #include "Engine/EditorEngine.h"
 #include "Actors/HeightFogActor.h"
+#include "UObject/UObjectIterator.h"
 
 void ControlEditorPanel::Render()
 {
@@ -280,7 +281,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             {.label = "PointLight", .obj = OBJ_PointLight },
             {.label = "DirectionalLight", .obj = OBJ_DirectionalLight },
             {.label = "SpotLight",    .obj = OBJ_SpotLight },
-            //{.label = "AmbientLight", .obj = OBJ_AmbientLight },
+            {.label = "AmbientLight", .obj = OBJ_AmbientLight },
             {.label = "Particle",  .obj = OBJ_PARTICLE },
             {.label = "Text",      .obj = OBJ_Text },
             {.label = "Fireball",  .obj = OBJ_Fireball},
@@ -329,12 +330,14 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     LightActor->SetActorLabel(TEXT("OBJ_SpotLight"));
                     break;
                 }
-                /*case OBJ_AmbientLight:
+                case OBJ_AmbientLight:
                 {
-                    AAmbientLight* LightActor = World->SpawnActor<AAmbientLight>();
-                    LightActor->SetActorLabel(TEXT("OBJ_AmbientLight"));
+                    if (!GEngineLoop.Renderer.LightManager->bAmbientExist) {
+                        AAmbientLight* LightActor = World->SpawnActor<AAmbientLight>();
+                        LightActor->SetActorLabel(TEXT("OBJ_AmbientLight"));
+                    }
                     break;
-                }*/
+                }
 
                 case OBJ_PARTICLE:
                 {
@@ -431,7 +434,7 @@ void ControlEditorPanel::CreateFlagButton() const
         ViewModes[i] = &ViewMode;
     }*/
 
-    const char* ViewModeNames[] = { "Lit_Gouraud", "Lit_Lambert", "Lit_Phong", "Unlit", "Wireframe", "SceneDepth", "WorldNormal"};
+    const char* ViewModeNames[] = { "Lit_Gouraud", "Lit_Lambert", "Lit_Phong", "Unlit", "Wireframe", "SceneDepth", "WorldNormal" };
 
     int rawViewMode = (int)ActiveViewport->GetViewMode();
     FString ViewModeControl = ViewModeNames[rawViewMode];

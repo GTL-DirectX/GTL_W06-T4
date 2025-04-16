@@ -31,7 +31,7 @@ void FLightManager::CollectLights()
     PointLights.Add(tempPoint);
     FSpotLightInfo tempSpot;
     SpotLights.Add(tempSpot);
-
+    bAmbientExist = false;
     for (ULightComponent* Light : TObjectRange<ULightComponent>())
     {
         if (!Light->IsVisible() || Light->GetWorld() != GEngine->ActiveWorld)
@@ -40,6 +40,7 @@ void FLightManager::CollectLights()
         if (auto* AmbientLight = Cast<UAmbientLightComponent>(Light))
         {
             AmbientLightInfo = MakeAmbientLightInfo(AmbientLight);
+            bAmbientExist = true;
         }
         else if (auto* DirectionalLight = Cast<UDirectionalLightComponent>(Light))
         {
@@ -202,8 +203,10 @@ void FLightManager::CullLightsByDistance(const FVector& ViewOrigin, float FarPla
     SpotLights.Empty();
     for (int i = 0; i < FMath::Min(MaxSpot, SpotLightPool.Num()); ++i)
         SpotLights.Add(SpotLightPool[i].Info);
+    /*
     UE_LOG(LogLevel::Display, TEXT("Culled PointLights: %d => %d"), OriginalPointCount, PointLights.Num());
     UE_LOG(LogLevel::Display, TEXT("Culled SpotLights:  %d => %d"), OriginalSpotCount, SpotLights.Num());
+    */
 
 }
 std::variant<FAmbientLightInfo, FDirectionalLightInfo, FPointLightInfo, FSpotLightInfo>
