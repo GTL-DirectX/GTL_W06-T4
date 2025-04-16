@@ -4,6 +4,6 @@
 
 ASpotLight::ASpotLight()
 {
-    LightComponent = AddComponent<USpotLightComponent>();
+    LightComponent = AddComponent<USpotLightComponent>("SpotLight_0");
     SpotLightComponent = Cast<USpotLightComponent>(LightComponent);
 }

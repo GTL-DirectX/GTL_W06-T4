@@ -4,6 +4,6 @@
 
 AAmbientLight::AAmbientLight()
 {
-    LightComponent = AddComponent<UAmbientLightComponent>();
+    LightComponent = AddComponent<UAmbientLightComponent>("AmbientLight_0");
     AmbientLightComponent = Cast<UAmbientLightComponent>(LightComponent);
 }

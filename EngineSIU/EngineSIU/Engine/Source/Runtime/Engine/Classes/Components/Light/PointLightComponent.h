@@ -10,6 +10,11 @@ public:
     UPointLightComponent() = default;
 
     virtual UObject* Duplicate(UObject* InOuter) override;
+
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+    
+    
     float GetAttenuationRadius() const { return AttRadius; }
     void SetAttenuationRadius(float InRadius) { AttRadius = InRadius; }
 

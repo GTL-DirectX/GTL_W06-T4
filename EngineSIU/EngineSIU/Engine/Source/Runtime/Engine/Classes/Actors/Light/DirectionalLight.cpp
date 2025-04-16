@@ -3,6 +3,6 @@
 
 ADirectionalLight::ADirectionalLight()
 {
-    LightComponent = AddComponent<UDirectionalLightComponent>();
+    LightComponent = AddComponent<UDirectionalLightComponent>("DirectionalLight_0");
     DirectionalLightComponent = Cast<UDirectionalLightComponent>(LightComponent);
 }
