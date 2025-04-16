@@ -136,6 +136,18 @@ void FLightManager::VisualizeLights(UPrimitiveDrawBatch* PrimitiveBatch)
                 Rotation
             );
         }
+        else if (auto* PointLight = Cast<UPointLightComponent>(Light))
+        {
+            const float Radius = PointLight->GetAttenuationRadius();
+
+            // 출력용 구 시각화
+            PrimitiveBatch->AddSphereToBatch(
+                Origin,
+                Radius,
+                64, // 세그먼트 수
+                FVector4(0.5f, 0.8f, 1.0f, 1.0f) // 하늘색 계열
+            );
+        }
 
     }
 }

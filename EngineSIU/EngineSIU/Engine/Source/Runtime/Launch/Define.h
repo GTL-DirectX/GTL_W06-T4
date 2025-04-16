@@ -266,9 +266,19 @@ struct FPrimitiveCounts
 {
     int BoundingBoxCount;
     int ConeCount;
-    int pad[2];
+    int SphereCount;
+    int pad;
 };
+struct FSphere
+{
+    FVector Center;
+    float Radius;
 
+    FVector4 Color;
+
+    int SegmentCount;
+    FVector Pad; // 16바이트 정렬
+};
 /*
 #define MAX_LIGHTS 16
 enum ELightType {
@@ -373,6 +383,8 @@ struct FLinePrimitiveBatchArgs
     int ConeCount;
     int ConeSegmentCount;
     int OBBCount;
+    int SphereCount;
+    int SphereSegmentCount;
 };
 
 struct FVertexInfo

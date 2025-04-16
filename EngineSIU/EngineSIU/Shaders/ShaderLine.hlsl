@@ -14,7 +14,8 @@ cbuffer PrimitiveCounts : register(b1)
 {
     int BoundingBoxCount; // 렌더링할 AABB의 개수
     int ConeCount; // 렌더링할 cone의 개수
-    float2 pad1;
+    int SphereCount;
+    float pad1;
 };
 
 struct FBoundingBoxData
@@ -37,6 +38,17 @@ struct FConeData
     int ConeSegmentCount; // 원뿔 밑면 분할 수
     float3 pad;
 };
+struct FSphereData
+{
+    float3 Center;
+    float Radius;
+
+    float4 Color;
+
+    int SegmentCount;
+    float3 Pad;
+};
+
 struct FOrientedBoxCornerData
 {
     float3 corners[8]; // 회전/이동 된 월드 공간상의 8꼭짓점
@@ -45,6 +57,7 @@ struct FOrientedBoxCornerData
 StructuredBuffer<FBoundingBoxData> g_BoundingBoxes : register(t2);
 StructuredBuffer<FConeData> g_ConeData : register(t3);
 StructuredBuffer<FOrientedBoxCornerData> g_OrientedBoxes : register(t4);
+StructuredBuffer<FSphereData> g_Spheres : register(t5);
 static const int BB_EdgeIndices[12][2] =
 {
     { 0, 1 },
@@ -221,6 +234,45 @@ float3 ComputeConePosition(uint globalInstanceID, uint vertexID)
         return (vertexID == 0) ? v0 : v1;
     }
 }
+float3 ComputeSpherePosition(uint sphereInstanceID, uint vertexID)
+{
+    int N = g_Spheres[0].SegmentCount;
+    if (N == 0)
+        return float3(0, 0, 0); // 안정성
+
+    uint sphereIndex = sphereInstanceID / (3 * N);
+    uint localLineID = sphereInstanceID % (3 * N);
+
+    FSphereData sphere = g_Spheres[sphereIndex];
+    int ringIndex = localLineID / N;
+    int segmentIndex = localLineID % N;
+
+    float angle = segmentIndex * 6.28318530718 / N;
+    float nextAngle = (segmentIndex + 1) * 6.28318530718 / N;
+
+    float3 dir1, dir2;
+    if (ringIndex == 0)
+    {
+        dir1 = float3(1, 0, 0);
+        dir2 = float3(0, 1, 0);
+    } // XY
+    else if (ringIndex == 1)
+    {
+        dir1 = float3(0, 1, 0);
+        dir2 = float3(0, 0, 1);
+    } // YZ
+    else
+    {
+        dir1 = float3(0, 0, 1);
+        dir2 = float3(1, 0, 0);
+    } // ZX
+
+    float3 posA = sphere.Center + (cos(angle) * dir1 + sin(angle) * dir2) * sphere.Radius;
+    float3 posB = sphere.Center + (cos(nextAngle) * dir1 + sin(nextAngle) * dir2) * sphere.Radius;
+
+    return (vertexID == 0) ? posA : posB;
+}
+
 /////////////////////////////////////////////////////////////////////////
 // OBB
 /////////////////////////////////////////////////////////////////////////
@@ -239,64 +291,77 @@ PS_INPUT mainVS(VS_INPUT input)
     PS_INPUT output;
     float3 pos;
     float4 color;
-    
-    // Cone 하나당 (2 * SegmentCount) 선분.
-    // ConeCount 개수만큼이므로 총 (2 * SegmentCount * ConeCount).
-    uint coneInstCnt = ConeCount * 2 * g_ConeData[0].ConeSegmentCount;
 
-    // Grid / Axis / AABB 인스턴스 개수 계산
-    uint gridLineCount = GridCount; // 그리드 라인
-    uint axisCount = 3; // X, Y, Z 축 (월드 좌표축)
-    uint aabbInstanceCount = 12 * BoundingBoxCount; // AABB 하나당 12개 엣지
+    // Instance 수 계산
+    uint gridLineCount = GridCount;
+    uint axisCount = 3;
+    uint aabbInstanceCount = 12 * BoundingBoxCount;
 
-    // 1) "콘 인스턴스 시작" 지점
     uint coneInstanceStart = gridLineCount + axisCount + aabbInstanceCount;
-    // 2) 그 다음(=콘 구간의 끝)이 곧 OBB 시작 지점
-    uint obbStart = coneInstanceStart + coneInstCnt;
+    uint coneInstanceCount = ConeCount * 2 * g_ConeData[0].ConeSegmentCount;
 
-    // 이제 instanceID를 기준으로 분기
+    uint sphereStart = coneInstanceStart + coneInstanceCount;
+    uint sphereCount = SphereCount * 3 * g_Spheres[0].SegmentCount;
+
+    uint obbStart = sphereStart + sphereCount;
+
+    //////////////////////////////////////////////////////////////////////
+    // 1) Grid
     if (input.instanceID < gridLineCount)
     {
-        // 0 ~ (GridCount-1): 그리드
         pos = ComputeGridPosition(input.instanceID, input.vertexID);
-        color = float4(0.1, 0.1, 0.1, 1.0);
+        color = float4(0.1, 0.1, 0.1, 1.0); // 연한 회색
     }
+
+    //////////////////////////////////////////////////////////////////////
+    // 2) Axis
     else if (input.instanceID < gridLineCount + axisCount)
     {
-        // 그 다음 (axisCount)개: 축(Axis)
-        uint axisInstanceID = input.instanceID - gridLineCount;
-        pos = ComputeAxisPosition(axisInstanceID, input.vertexID);
+        uint axisID = input.instanceID - gridLineCount;
+        pos = ComputeAxisPosition(axisID, input.vertexID);
 
-        // 축마다 색상
-        if (axisInstanceID == 0)
-            color = float4(1.0, 0.0, 0.0, 1.0); // X: 빨강
-        else if (axisInstanceID == 1)
-            color = float4(0.0, 1.0, 0.0, 1.0); // Y: 초록
-        else
-            color = float4(0.0, 0.0, 1.0, 1.0); // Z: 파랑
+        color = (axisID == 0) ? float4(1, 0, 0, 1) : // X
+                (axisID == 1) ? float4(0, 1, 0, 1) : // Y
+                                float4(0, 0, 1, 1); // Z
     }
-    else if (input.instanceID < gridLineCount + axisCount + aabbInstanceCount)
+
+    //////////////////////////////////////////////////////////////////////
+    // 3) AABB
+    else if (input.instanceID < coneInstanceStart)
     {
-        // 그 다음 AABB 인스턴스 구간
         uint index = input.instanceID - (gridLineCount + axisCount);
-        uint bbInstanceID = index / 12; // 12개가 1박스
-        uint bbEdgeIndex = index % 12;
-        
-        pos = ComputeBoundingBoxPosition(bbInstanceID, bbEdgeIndex, input.vertexID);
+        uint bbIndex = index / 12;
+        uint edgeIndex = index % 12;
+
+        pos = ComputeBoundingBoxPosition(bbIndex, edgeIndex, input.vertexID);
         color = float4(1.0, 1.0, 0.0, 1.0); // 노란색
     }
-    else if (input.instanceID < obbStart)
+
+    //////////////////////////////////////////////////////////////////////
+    // 4) Cone
+    else if (input.instanceID < sphereStart)
     {
-        // 그 다음 콘(Cone) 구간
         uint coneInstanceID = input.instanceID - coneInstanceStart;
         pos = ComputeConePosition(coneInstanceID, input.vertexID);
+
         int N = g_ConeData[0].ConeSegmentCount;
         uint coneIndex = coneInstanceID / (2 * N);
-        
         color = g_ConeData[coneIndex].Color;
-   
-        
     }
+
+    //////////////////////////////////////////////////////////////////////
+    // 5) Sphere
+    else if (input.instanceID < obbStart)
+    {
+        uint sphereInstanceID = input.instanceID - sphereStart;
+        pos = ComputeSpherePosition(sphereInstanceID, input.vertexID);
+
+        uint sphereIndex = sphereInstanceID / (3 * g_Spheres[0].SegmentCount);
+        color = g_Spheres[sphereIndex].Color;
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    // 6) OBB
     else
     {
         uint obbLocalID = input.instanceID - obbStart;
@@ -304,16 +369,17 @@ PS_INPUT mainVS(VS_INPUT input)
         uint edgeIndex = obbLocalID % 12;
 
         pos = ComputeOrientedBoxPosition(obbIndex, edgeIndex, input.vertexID);
-        color = float4(0.4, 1.0, 0.4, 1.0); // 예시: 연두색
+        color = float4(0.4, 1.0, 0.4, 1.0); // 연두색
     }
 
-    // 출력 변환
+    // 출력 설정
     output.WorldPosition = float4(pos, 1.0);
     output.Position = mul(float4(pos, 1.0), GetMVP());
     output.Color = color;
     output.instanceID = input.instanceID;
     return output;
 }
+
 
 float4 mainPS(PS_INPUT input) : SV_Target
 {
@@ -323,6 +389,7 @@ float4 mainPS(PS_INPUT input) : SV_Target
 
         float MaxDist = 400 * 1.2f;
         float MinDist = MaxDist * 0.3f;
+
 
          // Fade out grid
         float Fade = saturate(1.f - (Dist - MinDist) / (MaxDist - MinDist));
