@@ -150,12 +150,26 @@ void PropertyEditorPanel::Render()
                         SpotLight->SetAttenuationRadius(Radius);
 
                     float Inner = SpotLight->GetInnerConeAngle();
-                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Inner Cone", Inner, 0.0f, 1.57f, "%.2f"))
-                        SpotLight->SetInnerConeAngle(Inner);
-
                     float Outer = SpotLight->GetOuterConeAngle();
+                    if (FImGuiWidget::DrawFloatWithSliderAndDrag("Inner Cone", Inner, 0.0f, 1.57f, "%.2f"))
+                    {
+                        SpotLight->SetInnerConeAngle(Inner);
+                        if (Inner > Outer)
+                        {
+                            Outer = Inner;
+                            SpotLight->SetOuterConeAngle(Outer);
+                        }
+                    }
+
                     if (FImGuiWidget::DrawFloatWithSliderAndDrag("Outer Cone", Outer, 0.0f, 1.57f, "%.2f"))
+                    {
                         SpotLight->SetOuterConeAngle(Outer);
+                        if (Outer < Inner)
+                        {
+                            Inner = Outer;
+                            SpotLight->SetInnerConeAngle(Inner);
+                        }
+                    }
                 }
 
                 // ✅ Directional Light: 별도 속성 없음 (ForwardVector로만 방향 설정)
